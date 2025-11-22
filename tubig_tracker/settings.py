@@ -57,21 +57,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'tubig_tracker.wsgi.application'
 
 # Database
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'tubig_tracker_system',
-            'USER': 'root',
-            'PASSWORD': '12345678',
-            'HOST': 'localhost',
-            'PORT': '3306',
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.parse(os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'))
+}
 
 # Custom User model
 AUTH_USER_MODEL = 'tubig_tracker_app.User'
