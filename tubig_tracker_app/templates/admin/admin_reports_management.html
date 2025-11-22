@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Manage Reports</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin/admin_reports_management.css' %} ">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<style>
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="topbar">
+    <h1>Manage User Reports</h1>
+  </div>
+
+  {% for report in reports %}
+  <div class="card">
+    <h3>{{ report.title }} - <span class="status {% if report.status == 'pending' %}status-pending{% elif report.status == 'in_progress' %}status-in-progress{% else %}status-resolved{% endif %}">{{ report.get_status_display }}</span></h3>
+    <p>{{ report.description }}</p>
+
+    {% if report.photos.all %}
+      <div>
+        {% for photo in report.photos.all %}
+          <img src="{{ photo.photo.url }}" alt="Report Photo">
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="report-actions">
+      <form method="post" action="{% url 'update_report_status' report.id %}" style="display:inline-block;">
+        {% csrf_token %}
+        <select name="status">
+          <option value="pending" {% if report.status == 'pending' %}selected{% endif %}>Pending</option>
+          <option value="in_progress" {% if report.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+          <option value="completed" {% if report.status == 'completed' %}selected{% endif %}>Resolved</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Update Status</button>
+      </form>
+
+      <form method="post" action="{% url 'delete_complaint' report.id %}" style="display:inline-block;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div id="map"></div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([11.55, 124.62], 10); // Default center
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// Add report markers
+{% for report in reports %}
+  {% if report.latitude and report.longitude %}
+    const pinColor = "{% if report.status == 'pending' %}orange{% elif report.status == 'in_progress' %}blue{% else %}green{% endif %}";
+    const marker = L.circleMarker([{{ report.latitude }}, {{ report.longitude }}], {
+      color: pinColor,
+      radius: 8,
+      fillOpacity: 0.8
+    }).addTo(map).bindPopup("<b>{{ report.title }}</b><br>Status: {{ report.get_status_display }}");
+  {% endif %}
+{% endfor %}
+</script>
+
+</body>
+</html>

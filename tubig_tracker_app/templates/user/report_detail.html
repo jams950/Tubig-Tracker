@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Details</title>
+</head>
+<body>
+    <h1>Report Details</h1>
+    <p><strong>ID:</strong> {{ report.id }}</p>
+    <p><strong>Reporter:</strong> {{ report.reporter }}</p>
+    <p><strong>Issue Type:</strong> {{ report.issue_type }}</p>
+    <p><strong>Description:</strong> {{ report.description }}</p>
+    <p><strong>Status:</strong> {{ report.status }}</p>
+    {% if report.image %}
+        <img src="{{ report.image.url }}" alt="Report Image" style="max-width:400px;">
+    {% endif %}
+</body>
+</html>

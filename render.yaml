@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: tubig-tracker
+    env: python
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    startCommand: "gunicorn tubig_tracker.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+  
+  - type: pserv
+    name: tubig-tracker-db
+    env: postgresql
+    plan: free

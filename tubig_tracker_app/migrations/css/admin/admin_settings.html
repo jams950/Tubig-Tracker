@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/admin/admin_settings.css' %}">
+
+</head>
+<body>
+    <div class="container">
+        <div class="topbar">
+            <h1>Admin Settings</h1>
+            <a href="{% url 'admin_dashboard' %}" class="btn secondary">Back to Dashboard</a>
+        </div>
+
+        <div class="card">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="setting-item">
+                    <label for="site-title">Site Title</label>
+                    <input type="text" id="site-title" name="site_title" value="Tubig Tracker" placeholder="e.g., Tubig Tracker System">
+                </div>
+
+                <div class="setting-item">
+                    <label for="contact-email">Contact Email</label>
+                    <input type="text" id="contact-email" name="contact_email" value="admin@tubigtracker.com" placeholder="e.g., support@example.com">
+                </div>
+
+                <div class="setting-item">
+                    <label for="system-status-message">System Status Message</label>
+                    <textarea id="system-status-message" name="system_status_message" placeholder="e.g., Water supply is currently normal.">Water supply is currently normal.</textarea>
+                </div>
+
+                <div style="margin-top:20px; text-align: right;">
+                    <button type="submit" class="btn">Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1616 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tubig Tracker - Water Issue Reporting System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #0a4fc1;
+            --primary-dark: #083b8c;
+            --primary-light: #4d7fd6;
+            --accent: #00c9ff;
+            --text-dark: #1a2b4c;
+            --text-light: #6b7b9c;
+            --white: #ffffff;
+            --light-bg: #f8fafc;
+            --card-shadow: 0 10px 30px rgba(10, 79, 193, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--text-dark);
+            line-height: 1.7;
+            overflow-x: hidden;
+            font-size: 18px;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        /* Header Styles */
+        header {
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: linear-gradient(135deg, rgba(10, 79, 193, 0.95) 0%, rgba(0, 201, 255, 0.85) 100%);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 35px;
+        }
+
+        nav ul li {
+            position: relative;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 20px;
+            padding: 8px 0;
+            transition: var(--transition);
+            position: relative;
+            cursor: pointer;
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+
+        nav ul li a:hover {
+            transform: translateY(-2px);
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn-auth {
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-block;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid white;
+            color: white;
+            background: transparent;
+        }
+
+        .btn-auth:hover {
+            background: white;
+            color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-block;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-outline {
+            border-color: white;
+            color: white;
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+            border-color: white;
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 200px 0 100px;
+            position: relative;
+            overflow: hidden;
+            background-image: url("{% static 'images/background.png' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            margin-top: 0;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10, 79, 193, 0.65) 0%, rgba(0, 201, 255, 0.45) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 80px;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        .hero-text {
+            flex: 1;
+            max-width: 800px;
+        }
+
+        .hero-title {
+            font-size: 80px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 40px;
+            color: white;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: 26px;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 50px;
+            line-height: 1.6;
+            font-weight: 500;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 70px;
+        }
+
+        .hero-buttons .btn {
+            padding: 20px 45px;
+            font-size: 20px;
+            border-radius: 15px;
+            font-weight: 700;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 80px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-value {
+            font-size: 52px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-visual {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            max-width: 700px;
+        }
+
+        .dashboard-preview {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 25px 70px rgba(10, 79, 193, 0.25);
+            padding: 40px;
+            transform: perspective(1200px) rotateY(-5deg) rotateX(2deg);
+            transition: var(--transition);
+            width: 100%;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-preview:hover {
+            transform: perspective(1200px) rotateY(-2deg) rotateX(1deg);
+            box-shadow: 0 35px 90px rgba(10, 79, 193, 0.3);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 22px;
+            letter-spacing: 0.3px;
+        }
+
+        .dashboard-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .dashboard-nav-item {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--text-light);
+            transition: var(--transition);
+        }
+
+        .dashboard-nav-item:hover {
+            background: var(--primary);
+            transform: scale(1.2);
+        }
+
+        .dashboard-content {
+            display: flex;
+            flex: 1;
+            gap: 25px;
+        }
+
+        .map-container {
+            flex: 2;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 2px solid rgba(10, 79, 193, 0.1);
+            transition: var(--transition);
+        }
+
+        .map-container:hover {
+            border-color: var(--primary);
+        }
+
+        #live-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .stats-sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--light-bg) 0%, rgba(10, 79, 193, 0.03) 100%);
+            padding: 25px;
+            border-radius: 16px;
+            border-left: 5px solid var(--primary);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(10, 79, 193, 0.15);
+        }
+
+        .stat-card-title {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .stat-card-value {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 140px 0;
+            background: linear-gradient(135deg, #f0f6ff 0%, #e6f2ff 100%);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 80px;
+        }
+
+        .section-title {
+            font-size: 60px;
+            font-weight: 900;
+            margin-bottom: 25px;
+            color: var(--text-dark);
+            letter-spacing: -1px;
+        }
+
+        .section-subtitle {
+            font-size: 22px;
+            color: var(--text-light);
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 35px;
+            justify-items: center;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, var(--light-bg) 0%, rgba(10, 79, 193, 0.02) 100%);
+            border-radius: 18px;
+            padding: 45px 35px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 50px rgba(10, 79, 193, 0.18);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(10, 79, 193, 0.3);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: rotate(8px) scale(1.1);
+        }
+
+        .feature-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+            letter-spacing: -0.3px;
+        }
+
+        .feature-description {
+            color: var(--text-light);
+            font-size: 18px;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        /* Enhanced How It Works Section - Horizontal Layout */
+        .how-it-works {
+            padding: 140px 0;
+            background: linear-gradient(135deg, #e6f2ff 0%, #d9ebff 100%);
+            overflow: hidden;
+        }
+
+        .steps-horizontal-container {
+            position: relative;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .steps-horizontal {
+            display: flex;
+            gap: 30px;
+            padding: 20px 10px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .steps-horizontal::-webkit-scrollbar {
+            display: none;
+        }
+
+        .step-horizontal {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            min-width: 320px;
+            flex-shrink: 0;
+            position: relative;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+
+        .step-horizontal::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -25px;
+            width: 30px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            z-index: 1;
+        }
+
+        .step-horizontal:last-child::before {
+            display: none;
+        }
+
+        .step-horizontal:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(10, 79, 193, 0.15);
+            border-color: var(--primary-light);
+        }
+
+        .step-number-horizontal {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 auto 25px;
+            box-shadow: 0 8px 25px rgba(10, 79, 193, 0.3);
+            transition: var(--transition);
+        }
+
+        .step-horizontal:hover .step-number-horizontal {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .step-title-horizontal {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+        }
+
+        .step-description-horizontal {
+            color: var(--text-light);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Scroll buttons for How It Works */
+        .scroll-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .scroll-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 5px 15px rgba(10, 79, 193, 0.3);
+        }
+
+        .scroll-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(10, 79, 193, 0.4);
+        }
+
+        .scroll-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* About Section */
+        .about {
+            padding: 140px 0;
+            background: linear-gradient(135deg, #f0f6ff 0%, #e6f2ff 100%);
+        }
+
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about-description {
+            font-size: 20px;
+            color: var(--text-light);
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+
+        .about-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            justify-items: center;
+        }
+
+        .about-feature {
+            background: var(--light-bg);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: var(--transition);
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .about-feature:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .about-feature i {
+            font-size: 40px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .about-feature h4 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+        }
+
+        .about-feature p {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 130px 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .cta-title {
+            font-size: 60px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            letter-spacing: -0.8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-subtitle {
+            font-size: 22px;
+            margin-bottom: 45px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.95;
+            line-height: 1.6;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-light {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            font-size: 18px;
+        }
+
+        .btn-light:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-outline-light {
+            border: 2.5px solid white;
+            color: white;
+            background: transparent;
+            font-size: 18px;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--text-dark) 0%, #0f1e35 100%);
+            color: white;
+            padding: 80px 0 40px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+
+        .footer-column h3 {
+            font-size: 22px;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, var(--accent), transparent);
+            border-radius: 2px;
+        }
+
+        .footer-links {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .footer-links li {
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+            font-size: 17px;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 6px;
+        }
+
+        .footer-column p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 17px;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 25px;
+        }
+
+        .social-links a {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: var(--transition);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            font-size: 20px;
+        }
+
+        .social-links a:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(25px);
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .fade-in-delay-1 {
+            animation-delay: 0.2s;
+        }
+
+        .fade-in-delay-2 {
+            animation-delay: 0.4s;
+        }
+
+        .fade-in-delay-3 {
+            animation-delay: 0.6s;
+        }
+
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            animation: slideInLeft 0.6s ease forwards;
+        }
+
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(30px);
+            animation: slideInRight 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(25px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .hero-title {
+                font-size: 72px;
+            }
+            .hero-content {
+                max-width: 1400px;
+                padding: 0 40px;
+                gap: 60px;
+            }
+            .section-title, .cta-title {
+                font-size: 52px;
+            }
+            .step-horizontal {
+                min-width: 300px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .hero-content {
+                flex-direction: column;
+                gap: 50px;
+                padding: 0 30px;
+            }
+            
+            .hero-text {
+                text-align: center;
+                max-width: 100%;
+            }
+            
+            .hero-buttons {
+                justify-content: center;
+            }
+            
+            .hero-stats {
+                justify-content: center;
+                gap: 60px;
+            }
+            
+            .hero-visual {
+                max-width: 100%;
+            }
+
+            .hero-title {
+                font-size: 64px;
+            }
+            .hero-subtitle {
+                font-size: 22px;
+            }
+            
+            .step-horizontal {
+                min-width: 280px;
+            }
+            
+            .step-horizontal::before {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                padding: 15px 20px;
+            }
+            
+            .logo-section {
+                order: 1;
+            }
+            
+            nav {
+                order: 3;
+                margin: 10px 0;
+                width: 100%;
+            }
+
+            nav ul {
+                gap: 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+                font-size: 18px;
+            }
+            
+            .auth-buttons {
+                order: 2;
+                gap: 15px;
+            }
+
+            .btn-auth, .btn {
+                padding: 14px 25px;
+                font-size: 16px;
+            }
+            
+            .hero {
+                padding: 180px 0 80px;
+                margin-top: 140px;
+            }
+            
+            .hero-content {
+                padding: 0 20px;
+            }
+
+            .hero-title {
+                font-size: 48px;
+            }
+            
+            .hero-subtitle {
+                font-size: 20px;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+
+            .hero-buttons .btn {
+                width: 100%;
+                text-align: center;
+                padding: 18px 35px;
+                font-size: 18px;
+            }
+            
+            .hero-stats {
+                gap: 40px;
+            }
+            
+            .stat-value {
+                font-size: 42px;
+            }
+            
+            .stat-label {
+                font-size: 18px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+
+            .cta-buttons .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .section-title, .cta-title {
+                font-size: 42px;
+            }
+
+            .hero-subtitle, .section-subtitle, .cta-subtitle {
+                font-size: 18px;
+            }
+
+            .feature-title {
+                font-size: 24px;
+            }
+
+            .feature-description {
+                font-size: 17px;
+            }
+
+            .logo-img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .logo-text {
+                font-size: 24px;
+            }
+            
+            .step-horizontal {
+                min-width: 260px;
+                padding: 30px 20px;
+            }
+            
+            .step-title-horizontal {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-title {
+                font-size: 40px;
+            }
+            
+            .section-title, .cta-title {
+                font-size: 36px;
+            }
+            
+            .hero-stats {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .stat-value {
+                font-size: 36px;
+            }
+            
+            .dashboard-content {
+                flex-direction: column;
+            }
+            
+            .step-horizontal {
+                min-width: 240px;
+                padding: 25px 15px;
+            }
+            
+            .scroll-buttons {
+                margin-top: 30px;
+            }
+            
+            .scroll-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="{% static 'images/logo.png' %}" class="logo-img" alt="Tubig Tracker Logo">
+                <div class="logo-text">Tubig Tracker</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="auth-buttons">
+                <a href="#" class="btn-auth" onclick="startLoginLoading()">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+            </div>
+        </div>
+    </header>
+
+<!-- Home Section -->
+<section id="home" class="hero">
+    <div class="hero-content">
+        <div class="hero-text fade-in">
+            <h1 class="hero-title">Welcome to Tubig Tracker</h1>
+            <p class="hero-subtitle">
+                Tubig Tracker is a community-driven monitoring system designed to help identify and track 
+                water-related concerns such as leaks, low pressure, and supply interruptions. 
+                Built with privacy and efficiency in mind, the platform enables real-time updates 
+                and promotes faster response within your community.
+            </p>
+
+            <!-- Short system highlights -->
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-label">Real-Time Map Updates</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Community Reporting</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Privacy-Focused Platform</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-visual fade-in-delay-1">
+            <div class="dashboard-preview">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">Tubig Tracker Dashboard</div>
+                    <div class="dashboard-nav">
+                        <div class="dashboard-nav-item"></div>
+                        <div class="dashboard-nav-item"></div>
+                        <div class="dashboard-nav-item"></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="map-container">
+                        <div id="live-map"></div>
+                    </div>
+
+                    <div class="stats-sidebar">
+                        <div class="stat-card">
+                            <div class="stat-card-title">System Status</div>
+                            <div class="stat-card-value">Operational</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-title">Monitoring</div>
+                            <div class="stat-card-value">Active</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-title">Map Refresh</div>
+                            <div class="stat-card-value">Live</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Features</h2>
+                <p class="section-subtitle">Discover the powerful features that make Tubig Tracker the ultimate solution for water issue management</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3 class="feature-title">Real-Time Issue Reporting</h3>
+                    <p class="feature-description">Users can instantly report water-related issues such as leaks, low pressure, or no supply using an easy-to-use form.</p>
+                </div>
+                <div class="feature-card fade-in-delay-1">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Live Map Visualization</h3>
+                    <p class="feature-description">All submitted reports are displayed on an interactive map so the community and administrators can see affected areas in real time.</p>
+                </div>
+                <div class="feature-card fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h3 class="feature-title">Status Tracking</h3>
+                    <p class="feature-description">Every report has a status—Pending, In Progress, Completed, or False—so users know the progress of their issue.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-cog"></i>
+                    </div>
+                    <h3 class="feature-title">Admin Management Panel</h3>
+                    <p class="feature-description">Administrators can review reports, update statuses, verify issues, and manage user submissions efficiently.</p>
+                </div>
+                <div class="feature-card fade-in-delay-1">
+                    <div class="feature-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="feature-title">Photo Evidence Upload</h3>
+                    <p class="feature-description">Users can attach images to support their reports for better accuracy and validation.</p>
+                </div>
+                <div class="feature-card fade-in-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h3 class="feature-title">User Accounts & Authentication</h3>
+                    <p class="feature-description">Secure login ensures only verified users can submit or track issues.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced How It Works Section - Horizontal Layout -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Simple steps to report and track water issues in your community</p>
+            </div>
+            
+            <div class="steps-horizontal-container">
+                <div class="steps-horizontal" id="stepsScroll">
+                    <div class="step-horizontal slide-in-left">
+                        <div class="step-number-horizontal">1</div>
+                        <div class="step-content">
+                            <h3 class="step-title-horizontal">Submit a Report</h3>
+                            <p class="step-description-horizontal">Users fill out a simple form with issue details such as location, issue type, and optional photo evidence.</p>
+                        </div>
+                    </div>
+                    <div class="step-horizontal slide-in-left">
+                        <div class="step-number-horizontal">2</div>
+                        <div class="step-content">
+                            <h3 class="step-title-horizontal">System Records the Issue</h3>
+                            <p class="step-description-horizontal">The system saves the report and displays it on the live map for visibility.</p>
+                        </div>
+                    </div>
+                    <div class="step-horizontal slide-in-left">
+                        <div class="step-number-horizontal">3</div>
+                        <div class="step-content">
+                            <h3 class="step-title-horizontal">Admin Reviews</h3>
+                            <p class="step-description-horizontal">Administrators receive the report, validate the details, and update the status accordingly.</p>
+                        </div>
+                    </div>
+                    <div class="step-horizontal slide-in-right">
+                        <div class="step-number-horizontal">4</div>
+                        <div class="step-content">
+                            <h3 class="step-title-horizontal">Status Updates</h3>
+                            <p class="step-description-horizontal">Users are notified of any progress such as "In Progress" or "Completed."</p>
+                        </div>
+                    </div>
+                    <div class="step-horizontal slide-in-right">
+                        <div class="step-number-horizontal">5</div>
+                        <div class="step-content">
+                            <h3 class="step-title-horizontal">Community Awareness</h3>
+                            <p class="step-description-horizontal">Other residents can view ongoing issues on the map, helping the community stay informed.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scroll-buttons">
+                    <button class="scroll-btn" onclick="scrollSteps(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="scroll-btn" onclick="scrollSteps(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">About The System</h2>
+            </div>
+            <div class="about-content">
+                <p class="about-description">
+                    This system is a community-powered water issue reporting platform designed to improve communication between residents and local water authorities. It aims to make reporting easier, speed up response times, and keep everyone updated about water-related concerns.
+                </p>
+                <p class="about-description">
+                    By combining real-time mapping, responsive management tools, and user-friendly reporting, the system helps create a more efficient, transparent, and connected community.
+                </p>
+
+                <!-- Media Section -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin: 60px 0; align-items: center;">
+                    
+                    <!-- Video Container -->
+                    <div style="border-radius: 20px; overflow: hidden; box-shadow: 0 20px 50px rgba(10, 79, 193, 0.2); background: white; padding: 20px; transition: all 0.3s ease;">
+                        <video width="100%" controls style="border-radius: 15px; display: block;">
+                            <source src="{% static 'images/vid.mp4' %}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p style="margin-top: 20px; text-align: center; color: var(--text-dark); font-weight: 600; font-size: 18px;">System Demonstration Video</p>
+                    </div>
+
+                    <!-- Poster Container -->
+                    <div style="border-radius: 20px; overflow: hidden; box-shadow: 0 20px 50px rgba(10, 79, 193, 0.2); background: white; padding: 20px; transition: all 0.3s ease;">
+                        <img src="{% static 'images/poster.png' %}" alt="Tubig Tracker Poster" style="width: 100%; border-radius: 15px; display: block; object-fit: cover;">
+                        <p style="margin-top: 20px; text-align: center; color: var(--text-dark); font-weight: 600; font-size: 18px;">System Overview Poster</p>
+                    </div>
+
+                </div>
+
+                <!-- Features -->
+                <div class="about-features">
+                    <div class="about-feature fade-in">
+                        <i class="fas fa-users"></i>
+                        <h4>Community Powered</h4>
+                        <p>Empowering residents to actively participate in water issue resolution</p>
+                    </div>
+                    <div class="about-feature fade-in-delay-1">
+                        <i class="fas fa-bolt"></i>
+                        <h4>Real-Time Updates</h4>
+                        <p>Instant reporting and live tracking of water issues</p>
+                    </div>
+                    <div class="about-feature fade-in-delay-2">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Transparent Process</h4>
+                        <p>Clear status tracking and communication throughout the resolution process</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Contact Section -->
+    <section id="contact" class="cta">
+        <div class="container">
+            <h2 class="cta-title fade-in">Join Our Community Today</h2>
+            <p class="cta-subtitle fade-in-delay-1">Help create a safer and better water flow for everyone in your community by reporting issues and staying informed.</p>
+            <div class="cta-buttons fade-in-delay-2">
+                <a href="{% url 'register' %}" class="btn btn-light">Create Account</a>
+                <a href="#about" class="btn btn-outline-light">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Tubig Tracker</h3>
+                    <p>A community-powered system for tracking and resolving water issues.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#about">About</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Community</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-envelope" style="margin-right: 10px;"></i> help@tubig-tracker.com</a></li>
+                        <li><a href="#"><i class="fas fa-phone" style="margin-right: 10px;"></i> +1 (555) 123-4567</a></li>
+                        <li><a href="#"><i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Manila, Philippines</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Tubig Tracker | Developed by Jermaine Mae Noquera | Version 1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        function initMap() {
+            // Default coordinates for Manila, Philippines
+            const defaultLat = 14.5995;
+            const defaultLng = 120.9842;
+            
+            // Create map
+            const map = L.map('live-map').setView([defaultLat, defaultLng], 13);
+            
+            // Add tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add some sample markers for water issues
+            const issueMarkers = [
+                { lat: 14.6050, lng: 120.9800, type: 'leak', severity: 'high' },
+                { lat: 14.5950, lng: 120.9900, type: 'low-pressure', severity: 'medium' },
+                { lat: 14.6100, lng: 120.9700, type: 'no-water', severity: 'high' },
+                { lat: 14.5900, lng: 120.9950, type: 'leak', severity: 'low' },
+                { lat: 14.6000, lng: 120.9750, type: 'low-pressure', severity: 'medium' }
+            ];
+            
+            // Define custom icons based on issue type and severity
+            const getIcon = (type, severity) => {
+                let color;
+                if (severity === 'high') color = '#e74c3c';
+                else if (severity === 'medium') color = '#f39c12';
+                else color = '#2ecc71';
+                
+                return L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
+                });
+            };
+            
+            // Add markers to the map
+            issueMarkers.forEach(issue => {
+                L.marker([issue.lat, issue.lng], { 
+                    icon: getIcon(issue.type, issue.severity) 
+                }).addTo(map)
+                .bindPopup(`<b>Water Issue</b><br>Type: ${issue.type}<br>Severity: ${issue.severity}`);
+            });
+        }
+
+        // Horizontal scrolling function for How It Works section
+        function scrollSteps(direction) {
+            const container = document.getElementById('stepsScroll');
+            const scrollAmount = 350;
+            container.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+
+        // Enhanced scroll animations
+        function observeHorizontalSections() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationPlayState = 'running';
+                    }
+                });
+            }, { 
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+            
+            document.querySelectorAll('.slide-in-left, .slide-in-right').forEach(el => {
+                observer.observe(el);
+            });
+        }
+        
+        // Smooth scrolling for navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            
+            // Smooth scroll for navigation links
+            document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        const headerHeight = document.querySelector('header').offsetHeight;
+                        const targetPosition = targetElement.offsetTop - headerHeight - 20;
+                        
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            const fadeElements = document.querySelectorAll('.fade-in');
+            
+            const fadeInOnScroll = function() {
+                fadeElements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const elementVisible = 150;
+                    
+                    if (elementTop < window.innerHeight - elementVisible) {
+                        element.style.opacity = 1;
+                        element.style.transform = "translateY(0)";
+                    }
+                });
+            };
+            
+            // Initial check
+            fadeInOnScroll();
+            
+            // Check on scroll
+            window.addEventListener('scroll', fadeInOnScroll);
+
+            // Initialize horizontal section animations
+            observeHorizontalSections();
+        });
+        
+        function startLoginLoading() {
+            // Simulate login loading
+            setTimeout(() => {
+                window.location.href = "{% url 'login' %}";
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

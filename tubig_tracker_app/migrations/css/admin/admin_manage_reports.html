@@ -1,0 +1,369 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Biliran Reports Map — Admin</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/admin/admin_manage_reports.css' %}">
+
+  <style>
+    /* Status Colors */
+    .status-pending { color: orange; font-weight: bold; }
+    .status-inprogress { color: blue; font-weight: bold; }
+    .status-resolved { color: green; font-weight: bold; }
+
+    /* Status Update Form */
+    .status-buttons button {
+      margin: 2px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background: #f5f5f5;
+      transition: all 0.2s;
+    }
+
+    .status-buttons .active {
+      font-weight: bold;
+      border: 2px solid #333;
+      background: #ddd;
+    }
+
+    .status-update-form textarea {
+      width: 100%;
+      margin-top: 4px;
+      border-radius: 4px;
+      padding: 4px;
+      resize: none;
+    }
+
+    .btn-update {
+      margin-top: 4px;
+      background: #333;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-update:hover {
+      background: #555;
+    }
+
+    .btn-update.loading {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-update.loading::after {
+      content: ' ⟳';
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); }
+      to { transform: translateX(0); }
+    }
+
+    .notification.success {
+      background: #4caf50;
+    }
+
+    .notification.error {
+      background: #f44336;
+    }
+
+    .report-card {
+      transition: all 0.3s;
+    }
+
+    .report-card.updating {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+      <div class="nav">
+        <a href="{% url 'admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'view_users' %}"><i class="fas fa-users"></i> User Management</a>
+        <a href="{% url 'admin_manage_reports' %}" class="active"><i class="fas fa-file-alt"></i> Manage Reports</a>
+        <a href="{% url 'technician_management' %}"><i class="fas fa-cog"></i> Technician Management</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="top-nav"><div class="spacer"></div></div>
+
+    <div class="page-header">
+      <div class="header-left">
+        <h1><i class="fas fa-file-alt"></i> Water System Reports Management</h1>
+        <p class="subtitle">Monitor and manage all water-related reports across Biliran municipalities</p>
+      </div>
+    </div>
+
+    <div class="map-container"><div id="map"></div></div>
+
+    <div class="reports-section">
+      <div class="section-header">
+        <h2><i class="fas fa-list"></i> All Water Reports</h2>
+      </div>
+      <div class="reports-grid">
+        {% for report in reports %}
+        <div class="report-card" data-report-id="{{ report.id }}">
+          <div class="card-header">
+            <div class="card-id">#{{ report.id }}</div>
+            <span class="status-display {% if report.status == 'Pending' %}status-pending{% elif report.status == 'In Progress' %}status-inprogress{% elif report.status == 'Resolved' %}status-resolved{% endif %}">{{ report.status }}</span>
+          </div>
+          <div class="card-body">
+            <div class="info-item"><strong>Reporter:</strong> {% if report.reporter %}{{ report.reporter.username }}{% else %}Unknown{% endif %}</div>
+            <div class="info-item"><strong>Issue Type:</strong> {% if report.issue_type %}{{ report.issue_type }}{% else %}N/A{% endif %}</div>
+            <div class="info-item"><strong>Location:</strong> {% if report.location %}{{ report.location }}{% else %}N/A{% endif %}</div>
+            <div class="info-item"><strong>Date:</strong> {{ report.created_at|date:"M d, Y H:i" }}</div>
+            <div class="info-item">
+              <strong>Image:</strong>
+              {% if report.image %}
+              <img src="{{ report.image.url }}" alt="Report Image" class="report-image" onclick="event.stopPropagation(); openModal(this)">
+              {% else %}<span class="no-image">No Image Available</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- STATUS UPDATE FORM - WITH AJAX -->
+          <form class="status-update-form" data-report-id="{{ report.id }}" onclick="event.stopPropagation();">
+            {% csrf_token %}
+            <div class="status-buttons">
+              <button type="button" class="status-btn {% if report.status == 'Pending' %}active{% endif %}" data-status="Pending">Pending</button>
+              <button type="button" class="status-btn {% if report.status == 'In Progress' %}active{% endif %}" data-status="In Progress">In Progress</button>
+              <button type="button" class="status-btn {% if report.status == 'Resolved' %}active{% endif %}" data-status="Resolved">Resolved</button>
+            </div>
+            <textarea name="remarks" placeholder="Add remarks..." rows="1">{{ report.remarks }}</textarea>
+            <button type="submit" class="btn-update">Update</button>
+          </form>
+
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="event.stopPropagation();"><i class="fas fa-eye"></i> View Details</button>
+            <button class="btn btn-delete" onclick="event.stopPropagation();"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+        {% empty %}
+        <div class="no-reports">
+          <i class="fas fa-inbox"></i>
+          <h3>No reports found</h3>
+          <p>There are currently no water system reports to display.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <footer>© 2025 TUBIG Tracker | Manage Reports</footer>
+  </div>
+
+  <!-- Image Modal -->
+  <div id="imageModal" class="modal">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <img class="modal-content" id="modalImage">
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Initialize map
+    var map = L.map('map').setView([11.6055, 124.6308], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    var reportMarkers = {};
+    
+    {% for report in reports %}
+    {% if report.latitude and report.longitude %}
+    var color = "{{ report.status }}"==="Resolved"?"#2ecc71":"{{ report.status }}"==="In Progress"?"#3498db":"#f39c12";
+    var marker = L.marker([{{ report.latitude }}, {{ report.longitude }}], {
+      icon: L.divIcon({
+        html: `<div style="background:${color};width:24px;height:24px;border-radius:50%;border:3px solid white;"></div>`,
+        className:'water-marker', iconSize:[24,24], iconAnchor:[12,12]
+      })
+    }).addTo(map);
+
+    var popupContent = `
+      <div style="min-width:250px;">
+        <h4>{{ report.title }}</h4>
+        <p><strong>Status:</strong> <span style="color:${color}">{{ report.status }}</span></p>
+        <p><strong>Address:</strong> {% if report.address %}{{ report.address }}{% else %}N/A{% endif %}</p>
+        <p><strong>Reporter:</strong> {% if report.reporter %}{{ report.reporter.username }}{% else %}Anonymous{% endif %}</p>
+        {% if report.image %}
+          <img src="{{ report.image.url }}" width="200px" style="margin-top:5px;border-radius:6px;">
+        {% endif %}
+      </div>`;
+    marker.bindPopup(popupContent);
+    reportMarkers[{{ report.id }}] = marker;
+    {% endif %}
+    {% endfor %}
+
+    function focusMarker(id){
+      if(reportMarkers[id]){
+        map.setView(reportMarkers[id].getLatLng(),15);
+        reportMarkers[id].openPopup();
+      }
+    }
+
+    function openModal(img){
+      document.getElementById("imageModal").style.display='flex';
+      document.getElementById("modalImage").src=img.src;
+    }
+    
+    function closeModal(){ 
+      document.getElementById("imageModal").style.display='none'; 
+    }
+
+    window.onclick=function(e){ 
+      if(e.target===document.getElementById("imageModal")) closeModal(); 
+    }
+
+    // ===== HELPER FUNCTIONS FOR STATUS & MAP UPDATES =====
+    
+    function getStatusColor(status) {
+      if (status === 'Resolved') return '#2ecc71'; // Green
+      if (status === 'In Progress') return '#3498db'; // Blue
+      return '#f39c12'; // Orange for Pending
+    }
+
+    function updateMarkerColor(reportId, newStatus) {
+      if (reportMarkers[reportId]) {
+        const newColor = getStatusColor(newStatus);
+        const marker = reportMarkers[reportId];
+        
+        marker.setIcon(L.divIcon({
+          html: `<div style="background:${newColor};width:24px;height:24px;border-radius:50%;border:3px solid white;"></div>`,
+          className: 'water-marker',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        }));
+      }
+    }
+
+    // ===== STATUS BUTTON SELECTION =====
+    
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const form = this.closest('.status-update-form');
+        form.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // ===== FORM SUBMISSION WITH AJAX =====
+    
+    document.querySelectorAll('.status-update-form').forEach(form => {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const reportId = this.dataset.reportId;
+        const activeBtn = this.querySelector('.status-btn.active');
+        const status = activeBtn ? activeBtn.dataset.status : 'Pending';
+        const remarks = this.querySelector('textarea[name="remarks"]').value;
+        const csrfToken = this.querySelector('[name="csrfmiddlewaretoken"]').value;
+        
+        const submitBtn = this.querySelector('.btn-update');
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        
+        try {
+          const response = await fetch(`/update-report-status/${reportId}/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+              status: status,
+              remarks: remarks
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          
+          // Update the status display on card
+          const card = document.querySelector(`[data-report-id="${reportId}"]`);
+          const statusDisplay = card.querySelector('.status-display');
+          statusDisplay.textContent = status;
+          statusDisplay.className = 'status-display ' + 
+            (status === 'Pending' ? 'status-pending' : 
+             status === 'In Progress' ? 'status-inprogress' : 
+             'status-resolved');
+
+          // Update map marker color
+          updateMarkerColor(reportId, status);
+
+          showNotification('✓ Report updated successfully!', 'success');
+          
+          // Trigger dashboard refresh
+          window.parent.postMessage({
+            type: 'REPORT_UPDATED',
+            reportId: reportId,
+            status: status
+          }, '*');
+
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('✗ Failed to update report', 'error');
+        } finally {
+          submitBtn.classList.remove('loading');
+          submitBtn.disabled = false;
+        }
+      });
+    });
+
+    // Show notification
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

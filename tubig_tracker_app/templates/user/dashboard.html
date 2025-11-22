@@ -1,0 +1,345 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tubig Tracker Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/user/dashboard.css' %}">
+</head>
+<body>
+
+  <!-- SIDEBAR - FIXED -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo" alt="Tubig Tracker Logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}" class="active"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'add_complaint' %}"><i class="fas fa-exclamation-circle"></i> Report Issue</a>
+        <a href="{% url 'my_reports' %}"><i class="fas fa-clipboard-list"></i> My Reports</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- TOP NAVIGATION -->
+    <div class="top-nav">
+      <div class="admin-info"></div>
+      
+      <div class="user-menu">
+        <button class="user-menu-btn" onclick="toggleMenu(event)">
+          <i class="fas fa-user-circle"></i>
+          <span>{{ user.username }}</span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="user-menu-content">
+          <a href="#"><i class="fas fa-user"></i> Profile</a>
+          <a href="#"><i class="fas fa-cog"></i> Settings</a>
+          <a href="#" class="theme-toggle-item">
+            <span><i class="fas fa-moon"></i> Dark Mode</span>
+            <label class="theme-switch">
+              <input type="checkbox" id="darkModeToggle">
+              <span class="slider"></span>
+            </label>
+          </a>
+          <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h1>
+      <p class="subtitle">Monitor your water reports and activities</p>
+    </div>
+
+    <!-- GREETING SECTION -->
+    <div class="user-greeting">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <h2>Welcome back, {{ user.username }}!</h2>
+          <p>Here's what's happening with your water reports today</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats">
+      <div class="card">
+        <div class="card-icon total"><i class="fas fa-file-alt"></i></div>
+        <h3>Total Reports</h3>
+        <p>{{ total_reports }}</p>
+      </div>
+      <div class="card">
+        <div class="card-icon pending"><i class="fas fa-clock"></i></div>
+        <h3>Pending</h3>
+        <p>{{ pending }}</p>
+      </div>
+      <div class="card">
+        <div class="card-icon progress"><i class="fas fa-cogs"></i></div>
+        <h3>In Progress</h3>
+        <p>{{ in_progress }}</p>
+      </div>
+      <div class="card">
+        <div class="card-icon resolved"><i class="fas fa-check-circle"></i></div>
+        <h3>Resolved</h3>
+        <p>{{ resolved }}</p>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="map-container">
+      <div class="map-header">
+        <div class="map-title">
+          <i class="fas fa-map-marked-alt"></i> Water Reports Map
+        </div>
+        <div class="map-legend">
+          <div><span class="dot pending"></span> Pending</div>
+          <div><span class="dot progress"></span> In Progress</div>
+          <div><span class="dot resolved"></span> Resolved</div>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <!-- MY ASSIGNED TECHNICIANS -->
+    <div style="margin-top: 40px;">
+      <h3 style="font-size: 24px; font-weight: 600; margin-bottom: 20px; color: #333;">
+        <i class="fas fa-user-tie" style="margin-right: 10px; color: var(--primary-color);"></i>
+        My Reports & Assigned Technicians
+      </h3>
+
+      <div id="myReportsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 40px 20px; color: #999; grid-column: 1 / -1;">
+          <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+          <p>Loading your reports...</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>© 2025 Tubig Tracker | Dashboard</footer>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Toggle menu on click
+    function toggleMenu(event) {
+      event.stopPropagation();
+      const menu = event.target.closest('.user-menu');
+      const content = menu.querySelector('.user-menu-content');
+      content.classList.toggle('active');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const menus = document.querySelectorAll('.user-menu');
+      menus.forEach(menu => {
+        const content = menu.querySelector('.user-menu-content');
+        if (!menu.contains(event.target)) {
+          content.classList.remove('active');
+        }
+      });
+    });
+
+    // Theme toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      document.body.setAttribute('data-theme', 'dark');
+      darkModeToggle.checked = true;
+    }
+    darkModeToggle.addEventListener('change', () => {
+      if (darkModeToggle.checked) {
+        document.body.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    // Initialize map
+    const map = L.map('map', {
+      minZoom: 13,
+      maxZoom: 18,
+      zoom: 13
+    }).setView([11.5411, 124.5405], 13);
+
+    const southWest = L.latLng(11.4, 124.4);
+    const northEast = L.latLng(11.7, 124.7);
+    const bounds = L.latLngBounds(southWest, northEast);
+    map.setMaxBounds(bounds);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    let markers = [];
+
+    // Load reports and refresh map
+    async function loadReports() {
+      try {
+        const response = await fetch("{% url 'get_complaints' %}");
+        const reports = await response.json();
+
+        // Remove old markers
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
+
+        reports.forEach(r => {
+          if (!r.latitude || !r.longitude) return;
+          const lat = parseFloat(r.latitude);
+          const lng = parseFloat(r.longitude);
+
+          let color;
+          switch(r.status) {
+            case 'Pending':
+              color = '#ff9800';
+              break;
+            case 'In Progress':
+              color = '#2196f3';
+              break;
+            case 'Resolved':
+              color = '#4caf50';
+              break;
+            default:
+              color = '#000';
+          }
+
+          const marker = L.circleMarker([lat, lng], {
+            color: color,
+            radius: 8,
+            fillOpacity: 0.8
+          }).addTo(map);
+
+          marker.bindPopup(`
+            <div style="min-width:200px;">
+              <h4 style="margin:0 0 10px;">${r.title}</h4>
+              <p><strong>Status:</strong> <span style="color:${color};">${r.status}</span></p>
+              <p><strong>Date:</strong> ${r.date_reported}</p>
+              <a href="/report/${r.id}/" target="_blank">View Details</a>
+            </div>
+          `);
+
+          markers.push(marker);
+        });
+      } catch (error) {
+        console.error("Error loading reports:", error);
+      }
+    }
+
+    loadReports();
+    setInterval(loadReports, 10000);
+
+    // ========== LOAD USER REPORTS WITH ASSIGNED TECHNICIAN (READ-ONLY) ==========
+    async function loadUserReports() {
+      try {
+        const res = await fetch('/api/user-reports-assignment/', {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          credentials: 'same-origin'
+        });
+        
+        if (!res.ok) throw new Error('Failed to load reports');
+        const data = await res.json();
+        const reports = data.data || [];
+        
+        renderUserReports(reports);
+      } catch (err) {
+        console.error('Error loading user reports:', err);
+        document.getElementById('myReportsContainer').innerHTML = '<div style="padding: 20px; color: #f44336; grid-column: 1 / -1;">Failed to load your reports</div>';
+      }
+    }
+
+    function renderUserReports(reports) {
+      const container = document.getElementById('myReportsContainer');
+      
+      if (reports.length === 0) {
+        container.innerHTML = '<div style="padding: 40px 20px; text-align: center; color: #999; grid-column: 1 / -1;"><i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 10px; display: block;"></i><p>No reports yet. <a href="/report/add/" style="color: var(--primary-color);">Create one now</a></p></div>';
+        return;
+      }
+
+      container.innerHTML = reports.map(report => {
+        const tech = report.assigned_technician;
+        const statusColor = report.status === 'Pending' ? '#ff9800' : report.status === 'In Progress' ? '#2196f3' : '#4caf50';
+        const statusBg = report.status === 'Pending' ? '#fff3e0' : report.status === 'In Progress' ? '#e3f2fd' : '#e8f5e9';
+        
+        return `
+          <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid ${statusColor};">
+            
+            <!-- REPORT HEADER -->
+            <div style="padding: 15px; background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%); border-bottom: 1px solid #e0e0e0;">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                <div>
+                  <h4 style="margin: 0; color: #333; font-size: 16px;">${report.title}</h4>
+                  <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">Report #${report.id}</p>
+                </div>
+                <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: ${statusBg}; color: ${statusColor};">
+                  ${report.status}
+                </span>
+              </div>
+              <p style="margin: 0; color: #666; font-size: 12px;">
+                <i class="fas fa-calendar"></i> ${new Date(report.created_at).toLocaleDateString()}
+              </p>
+            </div>
+
+            <!-- TECHNICIAN INFO (if assigned) - READ ONLY -->
+            ${tech ? `
+              <div style="padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-bottom: 1px solid #e0e0e0;">
+                <p style="margin: 0 0 10px 0; font-size: 12px; color: #666; font-weight: 600; text-transform: uppercase;">
+                  <i class="fas fa-user-check"></i> Your Assigned Technician
+                </p>
+                
+                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                  <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #2196f3, #1976d2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; margin-right: 12px;">
+                    ${tech.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h5 style="margin: 0; color: #1565c0; font-size: 16px; font-weight: 600;">${tech.name}</h5>
+                    <p style="margin: 2px 0 0 0; color: #666; font-size: 12px;">Response time: <strong>${tech.response_time}</strong></p>
+                  </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                  <a href="tel:${tech.phone}" style="flex: 1; padding: 8px 12px; background: white; border: 1px solid #2196f3; color: #2196f3; text-align: center; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-phone"></i> ${tech.phone}
+                  </a>
+                  <a href="mailto:${tech.email}" style="flex: 1; padding: 8px 12px; background: white; border: 1px solid #2196f3; color: #2196f3; text-align: center; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-envelope"></i> Email
+                  </a>
+                </div>
+                
+                <div style="background: white; padding: 8px 10px; border-radius: 4px; font-size: 12px; color: #666;">
+                  <strong>Priority:</strong> <span style="text-transform: capitalize; font-weight: 600; color: ${tech.priority === 'critical' ? '#f44336' : tech.priority === 'high' ? '#ff9800' : tech.priority === 'medium' ? '#ffc107' : '#4caf50'};">${tech.priority}</span>
+                </div>
+              </div>
+            ` : `
+              <div style="padding: 15px; background: #f5f5f5; text-align: center; color: #999;">
+                <i class="fas fa-hourglass-half" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                <p style="margin: 0; font-size: 14px;">Waiting to be assigned to a technician</p>
+                <p style="margin: 5px 0 0 0; font-size: 12px;">An admin will assign this shortly</p>
+              </div>
+            `}
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Load reports when page loads
+    document.addEventListener('DOMContentLoaded', loadUserReports);
+
+    // Refresh reports every 30 seconds
+    setInterval(loadUserReports, 30000);
+  </script>
+</body>
+</html>

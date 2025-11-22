@@ -1,0 +1,1049 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TUBIG TRACKER</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
+
+:root {
+  --ocean-deep: #0a2463;
+  --ocean-blue: #1e88e5;
+  --water-light: #42a5f5;
+  --wave-cyan: #00bcd4;
+  --foam-white: #e3f2fd;
+  --text-dark: #1a237e;
+  --text-light: #546e7a;
+  --success: #00897b;
+  --warning: #fb8c00;
+  --danger: #e53935;
+  --shadow: rgba(10, 36, 99, 0.1);
+  --shadow-hover: rgba(10, 36, 99, 0.2);
+  --radius: 16px;
+  --radius-sm: 8px;
+  --transition: all 0.3s ease;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  min-height: 100vh;
+  transition: var(--transition);
+  display: flex;
+}
+
+body[data-theme='dark'] {
+  --ocean-deep: #0d1b2a;
+  --ocean-blue: #1b4965;
+  --water-light: #2d6a8b;
+  --wave-cyan: #00818a;
+  --foam-white: #1e3a5f;
+  --text-dark: #e3f2fd;
+  --text-light: #b0bec5;
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b4965 100%);
+}
+
+.sidebar {
+  width: 450px;
+  background: linear-gradient(180deg, var(--ocean-deep) 0%, var(--ocean-blue) 100%);
+  color: white;
+  padding: 0;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  transition: var(--transition);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 45px 35px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)), url('{% static "images/sidebar.png" %}') center/cover;
+  background-attachment: fixed;
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 200px;
+  height: 200px;
+  background: transparent;
+  border-radius: 20px;
+  padding: 12px;
+  animation: float 3s ease-in-out infinite;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.sidebar-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #fff, var(--wave-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav {
+  padding: 35px 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 45px 30px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  font-weight: 600;
+  font-size: 1.5rem;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: var(--wave-cyan);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.nav a:hover, .nav a.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateX(8px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav a:hover::before, .nav a.active::before {
+  transform: scaleY(1);
+}
+
+.nav a i {
+  font-size: 2rem;
+  width: 35px;
+  text-align: center;
+}
+
+.main-content {
+  margin-left: 450px;
+  padding: 40px;
+  width: calc(100% - 450px);
+  min-height: 100vh;
+  transition: var(--transition);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.top-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  border: 2px solid var(--ocean-blue);
+  border-radius: var(--radius);
+  padding: 16px 24px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--ocean-blue);
+  transition: var(--transition);
+  box-shadow: 0 4px 15px var(--shadow);
+  font-size: 1.1rem;
+  min-width: 200px;
+}
+
+.user-menu-btn:hover {
+  background: var(--ocean-blue);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-hover);
+}
+
+.user-menu-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 25px var(--shadow-hover);
+  min-width: 260px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: var(--transition);
+  overflow: hidden;
+  margin-top: 10px;
+  z-index: 100;
+}
+
+.user-menu-content.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-menu-content a {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 20px;
+  color: var(--text-dark);
+  text-decoration: none;
+  transition: var(--transition);
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.user-menu-content a:last-child {
+  border-bottom: none;
+}
+
+.user-menu-content a:hover {
+  background: var(--foam-white);
+  padding-left: 24px;
+}
+
+.page-header {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan)), url('{% static "images/sidebar.png" %}') center/cover;
+  background-blend-mode: overlay;
+  background-attachment: fixed;
+  padding: 40px;
+  border-radius: var(--radius);
+  color: white;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 30px var(--shadow-hover);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+}
+
+.refresh-btn {
+  background: white;
+  color: var(--ocean-blue);
+  border: none;
+  padding: 16px 28px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 20px;
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+  justify-content: center;
+}
+
+.refresh-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.refresh-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.refresh-btn.loading i {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.last-updated {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-greeting {
+  background: white;
+  padding: 40px;
+  border-radius: var(--radius);
+  margin-bottom: 40px;
+  box-shadow: 0 8px 25px var(--shadow);
+  transition: var(--transition);
+  border: 1px solid #e0e0e0;
+}
+
+.admin-info-large {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.admin-avatar {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: white;
+  box-shadow: 0 8px 20px var(--shadow);
+  animation: float 3s ease-in-out infinite;
+}
+
+.admin-details h2 {
+  color: var(--text-dark);
+  font-size: 2rem;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.admin-details p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px var(--shadow);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px var(--shadow-hover);
+}
+
+.card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 2rem;
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card:hover .card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.card-icon.active { background: linear-gradient(135deg, #00897b, #00acc1); color: white; }
+.card-icon.total { background: linear-gradient(135deg, var(--ocean-blue), var(--water-light)); color: white; }
+.card-icon.pending { background: linear-gradient(135deg, #fb8c00, #ff6f00); color: white; }
+.card-icon.progress { background: linear-gradient(135deg, #1e88e5, #42a5f5); color: white; }
+.card-icon.resolved { background: linear-gradient(135deg, #00897b, #26a69a); color: white; }
+
+.card h3 {
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card p {
+  color: var(--text-dark);
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.map-container {
+  background: white;
+  border-radius: var(--radius);
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 25px var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  border: 1px solid #e0e0e0;
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.map-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-legend {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+  background: var(--foam-white);
+  border-radius: var(--radius-sm);
+  padding: 15px 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.map-legend div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dot.pending { background: #ff9800; box-shadow: 0 0 10px rgba(255, 152, 0, 0.5); }
+.dot.progress { background: #2196f3; box-shadow: 0 0 10px rgba(33, 150, 243, 0.5); }
+.dot.resolved { background: #4caf50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+
+#map {
+  height: 500px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.recent-reports {
+  background: white;
+  border-radius: var(--radius);
+  padding: 40px;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 25px var(--shadow);
+  border: 1px solid #e0e0e0;
+}
+
+.recent-reports h3 {
+  color: var(--text-dark);
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 600;
+}
+
+.search-bar-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.search-bar {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 14px 20px 14px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 50px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  transition: var(--transition);
+  background: white;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--ocean-blue);
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+}
+
+.search-bar i {
+  position: absolute;
+  left: 18px;
+  color: var(--text-light);
+  font-size: 1.2rem;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--foam-white);
+  padding: 10px 16px;
+  border-radius: 50px;
+  color: var(--ocean-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.filter-badge i {
+  cursor: pointer;
+}
+
+.filter-badge:hover {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  color: white;
+}
+
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.reports-table thead {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  color: white;
+}
+
+.reports-table th {
+  padding: 20px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reports-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: var(--transition);
+}
+
+.reports-table tbody tr:hover {
+  background: var(--foam-white);
+}
+
+.reports-table td {
+  padding: 20px 16px;
+  color: var(--text-dark);
+  font-size: 1rem;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.status-pending { background: linear-gradient(135deg, #fb8c00, #ff6f00); box-shadow: 0 2px 8px rgba(251, 140, 0, 0.3); }
+.status-progress { background: linear-gradient(135deg, #1e88e5, #42a5f5); box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3); }
+.status-resolved { background: linear-gradient(135deg, #00897b, #26a69a); box-shadow: 0 2px 8px rgba(0, 137, 123, 0.3); }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 25px;
+  flex-wrap: wrap;
+}
+
+.pagination button, .pagination span {
+  padding: 10px 14px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  color: var(--text-dark);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  transition: var(--transition);
+  font-size: 0.95rem;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--ocean-blue);
+  color: white;
+  border-color: var(--ocean-blue);
+  transform: translateY(-2px);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination .active {
+  background: var(--ocean-blue);
+  color: white;
+  border-color: var(--ocean-blue);
+}
+
+.pagination-info {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 15px;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: var(--text-light);
+  font-size: 1rem;
+  margin-top: 40px;
+  border-top: 1px solid #e0e0e0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 320px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+
+  .search-bar-container {
+    flex-direction: column;
+  }
+
+  .search-bar input {
+    min-width: auto;
+  }
+
+  .recent-reports {
+    padding: 25px 20px;
+  }
+
+  .reports-table {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 576px) {
+  .pagination {
+    gap: 5px;
+  }
+
+  .pagination button, .pagination span {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .reports-table th,
+  .reports-table td {
+    padding: 14px 10px;
+    font-size: 0.85rem;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+      <div class="nav">
+        <a href="{% url 'admin_dashboard' %}" class="active"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'view_users' %}"><i class="fas fa-users"></i> User Management</a>
+        <a href="{% url 'admin_manage_reports' %}"><i class="fas fa-file-alt"></i> Manage Reports</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="top-nav">
+      <div class="user-menu">
+        <button class="user-menu-btn" onclick="toggleMenu(event)">
+          <i class="fas fa-user-shield"></i>
+          <span>Admin Settings</span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="user-menu-content">
+          <a href="#"><i class="fas fa-cog"></i> System Settings</a>
+          <a href="#"><i class="fas fa-user"></i> Admin Profile</a>
+          <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-header">
+      <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+      <p style="margin-bottom: 20px; opacity: 0.9;">Monitor and manage the water system operations</p>
+      <button id="refreshBtn" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+      <div class="last-updated" id="lastUpdated">Last updated: <span id="lastUpdatedTime">Just now</span></div>
+    </div>
+
+    <div class="admin-greeting">
+      <div class="admin-info-large">
+        <div class="admin-avatar"><i class="fas fa-user-shield"></i></div>
+        <div class="admin-details">
+          <h2>Welcome back, Administrator!</h2>
+          <p>System overview and management dashboard</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="card"><div class="card-icon active"><i class="fas fa-user-check"></i></div><h3>Active Users</h3><p id="activeUsersCount">{{ total_users }}</p></div>
+      <div class="card"><div class="card-icon total"><i class="fas fa-file-alt"></i></div><h3>Total Reports</h3><p id="totalReportsCount">{{ total_reports }}</p></div>
+      <div class="card"><div class="card-icon pending"><i class="fas fa-clock"></i></div><h3>Pending</h3><p id="pendingCount">{{ pending_reports }}</p></div>
+      <div class="card"><div class="card-icon progress"><i class="fas fa-cogs"></i></div><h3>In Progress</h3><p id="inProgressCount">{{ in_progress_reports }}</p></div>
+      <div class="card"><div class="card-icon resolved"><i class="fas fa-check-circle"></i></div><h3>Resolved</h3><p id="resolvedCount">{{ resolved_reports }}</p></div>
+    </div>
+
+    <div class="map-container">
+      <div class="map-header">
+        <div class="map-title"><i class="fas fa-map-marked-alt"></i> All Water Reports Map</div>
+        <div class="map-legend">
+          <div><span class="dot pending"></span> Pending</div>
+          <div><span class="dot progress"></span> In Progress</div>
+          <div><span class="dot resolved"></span> Completed</div>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <div class="recent-reports">
+      <h3><i class="fas fa-list"></i> Recent Reports</h3>
+      
+      <div class="search-bar-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Search by title, user, area, or barangay...">
+        </div>
+      </div>
+
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Title</th>
+            <th>Area</th>
+            <th>Barangay</th>
+            <th>Status</th>
+            <th>Date Reported</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+          <tr><td colspan="7" style="text-align: center; color: var(--text-light);">Loading reports...</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pagination" id="paginationContainer"></div>
+      <div class="pagination-info" id="paginationInfo"></div>
+    </div>
+
+    <footer>© 2025 TUBIG Tracker | Dashboard</footer>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    function toggleMenu(event) {
+      event.stopPropagation();
+      const menu = event.target.closest('.user-menu');
+      const content = menu.querySelector('.user-menu-content');
+      content.classList.toggle('active');
+    }
+    document.addEventListener('click', e => document.querySelectorAll('.user-menu').forEach(menu => menu.querySelector('.user-menu-content').classList.remove('active')));
+
+    const map = L.map('map', { minZoom: 13, maxZoom: 18 }).setView([11.5411, 124.5405], 13);
+    const bounds = L.latLngBounds(L.latLng(11.4,124.4), L.latLng(11.7,124.7));
+    map.setMaxBounds(bounds);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+
+    let markers = [];
+    let allComplaints = [];
+    let filteredComplaints = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
+
+    function updateLastUpdatedTime() {
+      document.getElementById('lastUpdatedTime').textContent = new Date().toLocaleTimeString();
+    }
+
+    async function loadComplaints(){
+      try {
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/all-complaints/?t=${timestamp}`, {
+          method:'GET',
+          headers:{ 'Cache-Control':'no-cache', 'X-Requested-With':'XMLHttpRequest' },
+          credentials:'same-origin'
+        });
+        if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const newComplaints = await res.json();
+
+        if(JSON.stringify(allComplaints)!==JSON.stringify(newComplaints)){
+          allComplaints = newComplaints;
+          filteredComplaints = newComplaints;
+          currentPage = 1;
+          updateMap(allComplaints);
+          updateTable(filteredComplaints);
+          updateStats(allComplaints);
+          updatePagination();
+          updateLastUpdatedTime();
+        }
+      } catch(err){ console.error(err); showError('Failed to load reports data.'); }
+    }
+
+    function filterComplaints() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      filteredComplaints = allComplaints.filter(c => {
+        const title = (c.title || '').toLowerCase();
+        const user = (c.user || '').toLowerCase();
+        const area = (c.area || '').toLowerCase();
+        const barangay = (c.barangay || '').toLowerCase();
+        return title.includes(searchTerm) || user.includes(searchTerm) || area.includes(searchTerm) || barangay.includes(searchTerm);
+      });
+      currentPage = 1;
+      updateTable(filteredComplaints);
+      updatePagination();
+    }
+
+    function updateTable(data){
+      const tbody = document.getElementById('reportsTableBody');
+      const startIdx = (currentPage - 1) * itemsPerPage;
+      const endIdx = startIdx + itemsPerPage;
+      const pageData = data.slice(startIdx, endIdx);
+
+      if(pageData.length === 0 && currentPage === 1){
+        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-light);">No reports found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = pageData.map(c=>`
+        <tr>
+          <td>${c.id}</td>
+          <td>${c.user}</td>
+          <td>${c.title}</td>
+          <td>${c.area||'N/A'}</td>
+          <td>${c.barangay||'N/A'}</td>
+          <td><span class="status-badge ${c.status.trim().toLowerCase().replace(' ','_')==='pending'?'status-pending':c.status.trim().toLowerCase().replace(' ','_')==='in_progress'?'status-progress':'status-resolved'}">${c.status}</span></td>
+          <td>${new Date(c.created_at).toLocaleDateString()} ${new Date(c.created_at).toLocaleTimeString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
+      const container = document.getElementById('paginationContainer');
+      const info = document.getElementById('paginationInfo');
+      
+      container.innerHTML = '';
+      
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = '← Previous';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.addEventListener('click', () => {
+        if(currentPage > 1) {
+          currentPage--;
+          updateTable(filteredComplaints);
+          updatePagination();
+          window.scrollTo({ top: document.querySelector('.recent-reports').offsetTop - 100, behavior: 'smooth' });
+        }
+      });
+      container.appendChild(prevBtn);
+
+      for(let i = 1; i <= totalPages; i++){
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = i === currentPage ? 'active' : '';
+        btn.addEventListener('click', () => {
+          currentPage = i;
+          updateTable(filteredComplaints);
+          updatePagination();
+          window.scrollTo({ top: document.querySelector('.recent-reports').offsetTop - 100, behavior: 'smooth' });
+        });
+        container.appendChild(btn);
+      }
+
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = 'Next →';
+      nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+      nextBtn.addEventListener('click', () => {
+        if(currentPage < totalPages) {
+          currentPage++;
+          updateTable(filteredComplaints);
+          updatePagination();
+          window.scrollTo({ top: document.querySelector('.recent-reports').offsetTop - 100, behavior: 'smooth' });
+        }
+      });
+      container.appendChild(nextBtn);
+
+      const startIdx = (currentPage - 1) * itemsPerPage + 1;
+      const endIdx = Math.min(currentPage * itemsPerPage, filteredComplaints.length);
+      info.textContent = `Showing ${filteredComplaints.length > 0 ? startIdx : 0} to ${endIdx} of ${filteredComplaints.length} reports`;
+    }
+
+    function updateMap(data){
+      markers.forEach(m=>map.removeLayer(m));
+      markers=[];
+      data.forEach(c=>{
+        if(!c.latitude || !c.longitude) return;
+        const statusNormalized = c.status.trim().toLowerCase().replace(' ','_');
+        const color = statusNormalized==='pending'? '#ff9800' : statusNormalized==='in_progress'? '#2196f3':'#4caf50';
+        const marker = L.circleMarker([c.latitude,c.longitude],{color,fillColor:color,radius:8,fillOpacity:0.8}).addTo(map);
+        marker.bindPopup(`
+          <div style="min-width:200px;">
+            <h4 style="margin:0 0 10px;color:#1565c0;">${c.title}</h4>
+            <p><strong>Status:</strong> <span style="color:${color};font-weight:bold;">${c.status}</span></p>
+            <p><strong>User:</strong> ${c.user}</p>
+            <p><strong>Area:</strong> ${c.area||'N/A'}</p>
+            <p><strong>Barangay:</strong> ${c.barangay||'N/A'}</p>
+            <p><strong>Date:</strong> ${new Date(c.created_at).toLocaleDateString()}</p>
+          </div>
+        `);
+        markers.push(marker);
+      });
+    }
+
+    function updateStats(data){
+      const total = data.length;
+      const pending = data.filter(c=>c.status.trim().toLowerCase()==='pending').length;
+      const inProgress = data.filter(c=>c.status.trim().toLowerCase()==='in progress').length;
+      const resolved = data.filter(c=>c.status.trim().toLowerCase()==='resolved').length;
+      document.getElementById('totalReportsCount').textContent=total;
+      document.getElementById('pendingCount').textContent=pending;
+      document.getElementById('inProgressCount').textContent=inProgress;
+      document.getElementById('resolvedCount').textContent=resolved;
+    }
+
+    function showError(message){
+      let el = document.getElementById('errorNotification');
+      if(!el){ el=document.createElement('div'); el.id='errorNotification'; el.style.cssText='position:fixed;top:20px;right:20px;background:#f44336;color:white;padding:15px;border-radius:5px;z-index:1000;'; document.body.appendChild(el);}
+      el.innerHTML=`<i class="fas fa-exclamation-triangle"></i> ${message}`; el.style.display='block';
+      setTimeout(()=>{el.style.display='none';},5000);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', filterComplaints);
+
+    document.getElementById('refreshBtn').addEventListener('click',function(){
+      const btn=this; btn.classList.add('loading');
+      loadComplaints().finally(()=>setTimeout(()=>btn.classList.remove('loading'),500));
+    });
+
+    loadComplaints();
+    updateLastUpdatedTime();
+    setInterval(loadComplaints,5000);
+
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden){ loadComplaints(); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1638 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technician Management | Tubig Tracker</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1565c0;
+            --primary-dark: #0d47a1;
+            --primary-light: #e3f2fd;
+            --secondary: #4caf50;
+            --accent: #ff9800;
+            --danger: #e53935;
+            --danger-dark: #c62828;
+            --text: #333333;
+            --text-light: #666666;
+            --text-lighter: #888888;
+            --bg: #f8fbff;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --primary: #1e88e5;
+            --primary-dark: #1565c0;
+            --primary-light: #0d47a1;
+            --secondary: #66bb6a;
+            --accent: #ffb74d;
+            --danger: #ef5350;
+            --danger-dark: #e53935;
+            --text: #f5f5f5;
+            --text-light: #e0e0e0;
+            --text-lighter: #bdbdbd;
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --border: #333333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        /* SIDEBAR - FIXED AND ENLARGED */
+        .sidebar {
+            width: 450px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 45px 35px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background-color: rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header img.logo {
+            height: 150px;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
+
+        .sidebar h2 {
+            font-size: 2rem;
+            margin: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .nav {
+            padding: 35px 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.9);
+            padding: 45px 30px;
+            border-radius: var(--radius-sm);
+            margin: 8px 0;
+            transition: var(--transition);
+            font-weight: 600;
+            font-size: 1.5rem;
+            border: 1px solid transparent;
+        }
+
+        .nav a:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(8px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(8px);
+        }
+
+        .nav a i {
+            width: 35px;
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        /* MAIN CONTENT - ADJUSTED FOR FIXED SIDEBAR */
+        .main-content {
+            margin-left: 450px;
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background-color: var(--bg);
+            animation: fadeIn 0.5s ease;
+            transition: var(--transition);
+            height: 100vh;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(10px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        /* TOP NAVIGATION */
+        .top-nav {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        /* USER MENU - ENLARGED */
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text);
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            font-size: 1.1rem;
+        }
+
+        .user-menu-btn:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+
+        .user-menu-btn i {
+            font-size: 1.5rem;
+        }
+
+        .user-menu-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--card-bg);
+            min-width: 280px;
+            box-shadow: var(--shadow-hover);
+            border-radius: var(--radius);
+            z-index: 100;
+            overflow: hidden;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .user-menu-content a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 24px;
+            text-decoration: none;
+            color: var(--text);
+            transition: var(--transition);
+            border-bottom: 1px solid var(--border);
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .user-menu-content a:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-content a:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            transform: translateX(6px);
+        }
+
+        .user-menu-content a i {
+            width: 24px;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .user-menu:hover .user-menu-content {
+            display: block;
+        }
+
+        /* PAGE HEADER */
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            font-weight: 600;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition);
+        }
+
+        h1 i {
+            color: var(--accent);
+            font-size: 2.2rem;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin: 0;
+            transition: var(--transition);
+        }
+
+        /* STAT CARDS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-icon {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .card-icon.total {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .card-icon.pending {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .card-icon.progress {
+            background: linear-gradient(135deg, #2196f3 0%, #0d47a1 100%);
+        }
+
+        .card-icon.resolved {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        }
+
+        .card-icon.active {
+            background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
+        }
+
+        .card h3 {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+        }
+
+        .card p {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin: 0;
+            transition: var(--transition);
+        }
+
+        /* TAB STYLING */
+        .nav-tabs {
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 25px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--text-light);
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            background-color: var(--card-bg);
+            border-bottom: 3px solid var(--primary);
+            font-weight: 600;
+        }
+
+        /* CONTENT CARDS */
+        .content-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+
+        .content-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .content-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .content-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition);
+        }
+
+        .content-card-title i {
+            color: var(--accent);
+            font-size: 1.8rem;
+        }
+
+        /* TABLES */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-top: 30px;
+            transition: var(--transition);
+        }
+
+        .table-container:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .table-responsive {
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 1rem;
+        }
+
+        .table th {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 700;
+            transition: var(--transition);
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--primary-light);
+            transition: var(--transition);
+        }
+
+        /* BUTTONS */
+        .btn {
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(21, 101, 192, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--secondary) 0%, #2e7d32 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--accent) 0%, #f57c00 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(229, 57, 53, 0.3);
+        }
+
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* BADGES */
+        .status-badge {
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .priority-low { 
+            background-color: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+        .priority-medium { 
+            background-color: rgba(255, 152, 0, 0.15);
+            color: #ff9800;
+        }
+        .priority-high { 
+            background-color: rgba(255, 87, 34, 0.15);
+            color: #ff5722;
+        }
+        .priority-critical { 
+            background-color: rgba(229, 57, 53, 0.15);
+            color: #e53935;
+        }
+
+        .bg-success { background-color: #4caf50 !important; }
+        .bg-warning { background-color: #ff9800 !important; }
+        .bg-info { background-color: #2196f3 !important; }
+        .bg-danger { background-color: #e53935 !important; }
+
+        /* TECHNICIAN CARDS */
+        .technician-card {
+            border-left: 4px solid var(--border);
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            height: 100%;
+        }
+
+        .technician-card.available {
+            border-left-color: #4caf50;
+        }
+
+        .technician-card.busy {
+            border-left-color: #e53935;
+        }
+
+        .technician-card.offline {
+            border-left-color: #6c757d;
+        }
+
+        .technician-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* MODALS */
+        .modal-content {
+            border-radius: var(--radius);
+            border: none;
+            box-shadow: var(--shadow-hover);
+            background: var(--card-bg);
+            color: var(--text);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: var(--radius) var(--radius) 0 0;
+            border-bottom: none;
+            padding: 25px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border);
+            padding: 20px 25px;
+        }
+
+        .btn-close-white {
+            filter: invert(1);
+        }
+
+        /* FORM ELEMENTS */
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 10px 15px;
+            background: var(--card-bg);
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(21, 101, 192, 0.25);
+        }
+
+        .form-text {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        /* ALERTS */
+        .alert {
+            border-radius: var(--radius-sm);
+            border: none;
+            padding: 15px 20px;
+        }
+
+        .alert-info {
+            background-color: rgba(21, 101, 192, 0.1);
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+        }
+
+        /* THEME TOGGLE */
+        .theme-toggle-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Animation for modal */
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-content {
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        /* Loading spinner */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs .nav-link {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            .action-btn {
+                width: 100%;
+                margin-bottom: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div> <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+
+            <div class="nav">
+    <a href="{% url 'admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{% url 'view_users' %}"><i class="fas fa-users"></i> User Management</a>
+    <a href="{% url 'admin_manage_reports' %}"><i class="fas fa-file-alt"></i> Manage Reports</a>
+    <a href="{% url 'technician_management' %}" class="active"><i class="fas fa-cog"></i> Technician Management</a>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="user-menu">
+                <button class="user-menu-btn" onclick="toggleMenu(event)">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Settings</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="user-menu-content">
+                    <a href="#"><i class="fas fa-cog"></i> System Settings</a>
+                    <a href="#"><i class="fas fa-user"></i> Admin Profile</a>
+                    <a href="#" class="theme-toggle-item">
+                        <span><i class="fas fa-moon"></i> Dark Mode</span>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </a>
+                    <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-cog"></i> Technician Management</h1>
+            <p class="subtitle">Manage technicians and assign reports efficiently</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats">
+            <div class="card">
+                <div class="card-icon total">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Total Technicians</h3>
+                <p id="totalTechCount">8</p>
+            </div>
+            <div class="card">
+                <div class="card-icon resolved">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h3>Available</h3>
+                <p id="availableTechCount">5</p>
+            </div>
+            <div class="card">
+                <div class="card-icon pending">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h3>Unassigned Reports</h3>
+                <p id="unassignedCount">12</p>
+            </div>
+            <div class="card">
+                <div class="card-icon progress">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3>Assigned Reports</h3>
+                <p id="assignedCount">7</p>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="managementTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="assignments-tab" data-bs-toggle="tab" data-bs-target="#assignments" type="button" role="tab">
+                    <i class="fas fa-tasks me-2"></i>Assignments
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="technicians-tab" data-bs-toggle="tab" data-bs-target="#technicians" type="button" role="tab">
+                    <i class="fas fa-users me-2"></i>Technicians
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                    <i class="fas fa-history me-2"></i>Assignment History
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="managementTabsContent">
+            <!-- Assignments Tab -->
+            <div class="tab-pane fade show active" id="assignments" role="tabpanel">
+                <div class="content-card">
+                    <div class="content-card-header">
+                        <h5 class="content-card-title">
+                            <i class="fas fa-list me-2"></i>Reports Needing Assignment
+                        </h5>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTechnicianModal">
+                            <i class="fas fa-plus me-2"></i>Add Technician
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="unassignedReportsTable">
+                            <thead>
+                                <tr>
+                                    <th>Report ID</th>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Location</th>
+                                    <th>Created</th>
+                                    <th>Assigned To</th>
+                                    <th>Priority</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#1245</td>
+                                    <td>Water pipe leakage at Main Street</td>
+                                    <td><span class="badge bg-warning status-badge">Pending</span></td>
+                                    <td>Naval, Brgy. 1</td>
+                                    <td>2 hours ago</td>
+                                    <td><span class="text-danger">Unassigned</span></td>
+                                    <td><span class="badge priority-medium status-badge">Medium</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary action-btn assign-btn" data-report-id="1245" data-report-title="Water pipe leakage at Main Street">
+                                            <i class="fas fa-user-plus me-1"></i>Assign
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#1243</td>
+                                    <td>Low water pressure in Purok 5</td>
+                                    <td><span class="badge bg-warning status-badge">Pending</span></td>
+                                    <td>Caibiran, Brgy. 3</td>
+                                    <td>5 hours ago</td>
+                                    <td><span class="text-danger">Unassigned</span></td>
+                                    <td><span class="badge priority-high status-badge">High</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary action-btn assign-btn" data-report-id="1243" data-report-title="Low water pressure in Purok 5">
+                                            <i class="fas fa-user-plus me-1"></i>Assign
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#1239</td>
+                                    <td>Water contamination reported</td>
+                                    <td><span class="badge bg-warning status-badge">Pending</span></td>
+                                    <td>Biliran, Brgy. 5</td>
+                                    <td>1 day ago</td>
+                                    <td><span class="text-danger">Unassigned</span></td>
+                                    <td><span class="badge priority-critical status-badge">Critical</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary action-btn assign-btn" data-report-id="1239" data-report-title="Water contamination reported">
+                                            <i class="fas fa-user-plus me-1"></i>Assign
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#1235</td>
+                                    <td>Broken water meter</td>
+                                    <td><span class="badge bg-warning status-badge">Pending</span></td>
+                                    <td>Cabucgayan, Brgy. 2</td>
+                                    <td>2 days ago</td>
+                                    <td><span class="text-danger">Unassigned</span></td>
+                                    <td><span class="badge priority-low status-badge">Low</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary action-btn assign-btn" data-report-id="1235" data-report-title="Broken water meter">
+                                            <i class="fas fa-user-plus me-1"></i>Assign
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Currently Assigned Reports -->
+                <div class="content-card">
+                    <div class="content-card-header">
+                        <h5 class="content-card-title">
+                            <i class="fas fa-clipboard-check me-2"></i>Currently Assigned Reports
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Report ID</th>
+                                    <th>Title</th>
+                                    <th>Technician</th>
+                                    <th>Priority</th>
+                                    <th>Assigned At</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#1241</td>
+                                    <td>No water supply in Purok 3</td>
+                                    <td>
+                                        <strong>Juan Dela Cruz</strong>
+                                        <br><small class="text-muted">+63 912 345 6789</small>
+                                    </td>
+                                    <td><span class="badge priority-high status-badge">High</span></td>
+                                    <td>3 hours ago</td>
+                                    <td><span class="badge bg-info status-badge">In Progress</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning action-btn reassign-btn" data-report-id="1241" data-report-title="No water supply in Purok 3">
+                                            <i class="fas fa-sync me-1"></i>Reassign
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#1238</td>
+                                    <td>Leaking fire hydrant</td>
+                                    <td>
+                                        <strong>Maria Santos</strong>
+                                        <br><small class="text-muted">+63 917 890 1234</small>
+                                    </td>
+                                    <td><span class="badge priority-critical status-badge">Critical</span></td>
+                                    <td>5 hours ago</td>
+                                    <td><span class="badge bg-info status-badge">In Progress</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning action-btn reassign-btn" data-report-id="1238" data-report-title="Leaking fire hydrant">
+                                            <i class="fas fa-sync me-1"></i>Reassign
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#1234</td>
+                                    <td>Clogged drainage</td>
+                                    <td>
+                                        <strong>Pedro Reyes</strong>
+                                        <br><small class="text-muted">+63 918 567 8901</small>
+                                    </td>
+                                    <td><span class="badge priority-medium status-badge">Medium</span></td>
+                                    <td>1 day ago</td>
+                                    <td><span class="badge bg-info status-badge">In Progress</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning action-btn reassign-btn" data-report-id="1234" data-report-title="Clogged drainage">
+                                            <i class="fas fa-sync me-1"></i>Reassign
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technicians Tab -->
+            <div class="tab-pane fade" id="technicians" role="tabpanel">
+                <div class="content-card">
+                    <div class="content-card-header">
+                        <h5 class="content-card-title">
+                            <i class="fas fa-users me-2"></i>Technician Team
+                        </h5>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTechnicianModal">
+                            <i class="fas fa-plus me-2"></i>Add Technician
+                        </button>
+                    </div>
+                    <div class="row" id="techniciansList">
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card technician-card available h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title mb-1">Juan Dela Cruz</h5>
+                                            <span class="badge bg-success status-badge">Available</span>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-clock me-2"></i>Change Status</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-phone me-1"></i>+63 912 345 6789
+                                        </small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope me-1"></i>juan.delacruz@example.com
+                                        </small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-wrench me-1"></i>Pipe Repair, Pump Maintenance
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-center">
+                                        <div>
+                                            <h6 class="mb-0">2</h6>
+                                            <small class="text-muted">Active</small>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">24</h6>
+                                            <small class="text-muted">Resolved</small>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">4.8</h6>
+                                            <small class="text-muted">Rating</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card technician-card busy h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title mb-1">Maria Santos</h5>
+                                            <span class="badge bg-danger status-badge">Busy</span>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-clock me-2"></i>Change Status</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-phone me-1"></i>+63 917 890 1234
+                                        </small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope me-1"></i>maria.santos@example.com
+                                        </small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-wrench me-1"></i>Water Quality, Leak Detection
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-center">
+                                        <div>
+                                            <h6 class="mb-0">3</h6>
+                                            <small class="text-muted">Active</small>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">18</h6>
+                                            <small class="text-muted">Resolved</small>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">4.6</h6>
+                                            <small class="text-muted">Rating</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card technician-card available h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title mb-1">Pedro Reyes</h5>
+                                            <span class="badge bg-success status-badge">Available</span>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-clock me-2"></i>Change Status</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-phone me-1"></i>+63 918 567 8901
+                                        </small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope me-1"></i>pedro.reyes@example.com
+                                        </small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-wrench me-1"></i>Meter Installation, Valve Repair
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-center">
+                                        <div>
+                                            <h6 class="mb-0">1</h6>
+                                            <small class="text-muted">Active</small>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">15</h6>
+                                            <small class="text-muted">Resolved</small>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">4.9</h6>
+                                            <small class="text-muted">Rating</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignment History Tab -->
+            <div class="tab-pane fade" id="history" role="tabpanel">
+                <div class="content-card">
+                    <div class="content-card-header">
+                        <h5 class="content-card-title">
+                            <i class="fas fa-history me-2"></i>Assignment History
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Report ID</th>
+                                    <th>Title</th>
+                                    <th>Technician</th>
+                                    <th>Priority</th>
+                                    <th>Assigned At</th>
+                                    <th>Resolved At</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#1230</td>
+                                    <td>Water pipe leakage at Main Street</td>
+                                    <td>Juan Dela Cruz</td>
+                                    <td><span class="badge priority-high status-badge">High</span></td>
+                                    <td>Jan 15, 2023 10:30 AM</td>
+                                    <td>Jan 15, 2023 2:15 PM</td>
+                                    <td><span class="badge bg-success status-badge">Resolved</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#1228</td>
+                                    <td>Low water pressure in Purok 5</td>
+                                    <td>Maria Santos</td>
+                                    <td><span class="badge priority-medium status-badge">Medium</span></td>
+                                    <td>Jan 14, 2023 9:15 AM</td>
+                                    <td>Jan 14, 2023 11:45 AM</td>
+                                    <td><span class="badge bg-success status-badge">Resolved</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#1225</td>
+                                    <td>Water contamination reported</td>
+                                    <td>Pedro Reyes</td>
+                                    <td><span class="badge priority-critical status-badge">Critical</span></td>
+                                    <td>Jan 13, 2023 3:20 PM</td>
+                                    <td>Jan 13, 2023 5:45 PM</td>
+                                    <td><span class="badge bg-success status-badge">Resolved</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#1222</td>
+                                    <td>Broken water meter</td>
+                                    <td>Juan Dela Cruz</td>
+                                    <td><span class="badge priority-low status-badge">Low</span></td>
+                                    <td>Jan 12, 2023 11:00 AM</td>
+                                    <td>Jan 12, 2023 1:30 PM</td>
+                                    <td><span class="badge bg-success status-badge">Resolved</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Technician Modal -->
+    <div class="modal fade" id="addTechnicianModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Add New Technician
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addTechnicianForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Full Name</label>
+                                <input type="text" class="form-control" name="name" required placeholder="Enter technician name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Phone Number</label>
+                                <input type="tel" class="form-control" name="phone" required placeholder="+63 XXX XXX XXXX">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Email Address</label>
+                                <input type="email" class="form-control" name="email" required placeholder="technician@email.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Specialization</label>
+                                <input type="text" class="form-control" name="specialization" placeholder="e.g., Pipe Repair, Pump Maintenance">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="saveTechnicianBtn">
+                        <i class="fas fa-save me-1"></i>Save Technician
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Modal -->
+    <div class="modal fade" id="assignmentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Assign Report
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Report Info -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading mb-2" id="reportTitle">Water pipe leakage at Main Street</h6>
+                        <p class="mb-1 small" id="reportDescription">Residents reported a major water pipe leakage causing water wastage and low pressure in the area.</p>
+                        <div class="row small text-muted mt-2">
+                            <div class="col-6">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                <span id="reportLocation">Naval, Brgy. 1</span>
+                            </div>
+                            <div class="col-6">
+                                <i class="fas fa-clock me-1"></i>
+                                <span id="reportTime">2 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="assignmentForm">
+                        <input type="hidden" name="report_id" id="reportId" value="">
+                        
+                        <!-- Technician Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Select Technician</label>
+                            <select class="form-select" name="technician_id" required id="technicianSelect">
+                                <option value="">Choose a technician...</option>
+                                <option value="1">Juan Dela Cruz - Available (2 active)</option>
+                                <option value="3">Pedro Reyes - Available (1 active)</option>
+                                <option value="4">Ana Lopez - Available (0 active)</option>
+                                <option value="5">Carlos Garcia - Available (1 active)</option>
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Only available technicians are shown
+                            </div>
+                        </div>
+                        
+                        <!-- Priority Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Priority Level</label>
+                            <select class="form-select" name="priority" required id="prioritySelect">
+                                <option value="low">🟢 Low - Routine maintenance</option>
+                                <option value="medium" selected>🟡 Medium - Standard issue</option>
+                                <option value="high">🟠 High - Urgent repair needed</option>
+                                <option value="critical">🔴 Critical - Emergency situation</option>
+                            </select>
+                        </div>
+
+                        <!-- Selected Technician Preview -->
+                        <div class="card bg-light d-none" id="technicianPreview">
+                            <div class="card-body py-2">
+                                <div class="row align-items-center">
+                                    <div class="col-8">
+                                        <h6 class="mb-1" id="previewName"></h6>
+                                        <small class="text-muted" id="previewContact"></small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <span class="badge" id="previewStatus"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="confirmAssignBtn">
+                        <i class="fas fa-check me-1"></i>Confirm Assignment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Technician Management JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle assignment buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.assign-btn')) {
+                    const button = e.target.closest('.assign-btn');
+                    const reportId = button.dataset.reportId;
+                    const reportTitle = button.dataset.reportTitle;
+                    openAssignmentModal(reportId, reportTitle, false);
+                }
+                
+                if (e.target.closest('.reassign-btn')) {
+                    const button = e.target.closest('.reassign-btn');
+                    const reportId = button.dataset.reportId;
+                    const reportTitle = button.dataset.reportTitle;
+                    openAssignmentModal(reportId, reportTitle, true);
+                }
+            });
+            
+            // Initialize assignment modal functionality
+            function initializeAssignmentModal() {
+                const technicianSelect = document.getElementById('technicianSelect');
+                const previewCard = document.getElementById('technicianPreview');
+                const confirmBtn = document.getElementById('confirmAssignBtn');
+                
+                // Technician selection change
+                if (technicianSelect) {
+                    technicianSelect.addEventListener('change', function(e) {
+                        const selectedOption = e.target.options[e.target.selectedIndex];
+                        if (selectedOption.value) {
+                            updateTechnicianPreview(selectedOption);
+                            previewCard.classList.remove('d-none');
+                        } else {
+                            previewCard.classList.add('d-none');
+                        }
+                    });
+                }
+                
+                // Confirm assignment
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', submitAssignment);
+                }
+            }
+            
+            function openAssignmentModal(reportId, reportTitle, isReassign) {
+                // Set modal title based on action
+                const modalTitle = document.querySelector('#assignmentModal .modal-title');
+                modalTitle.innerHTML = `<i class="fas fa-user-plus me-2"></i>${isReassign ? 'Reassign' : 'Assign'} Report`;
+                
+                // Set report info
+                document.getElementById('reportId').value = reportId;
+                document.getElementById('reportTitle').textContent = reportTitle;
+                
+                // Reset form
+                document.getElementById('technicianSelect').selectedIndex = 0;
+                document.getElementById('prioritySelect').selectedIndex = 1; // Medium priority
+                document.getElementById('technicianPreview').classList.add('d-none');
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('assignmentModal'));
+                modal.show();
+                
+                // Initialize modal functionality
+                initializeAssignmentModal();
+            }
+            
+            function updateTechnicianPreview(option) {
+                const name = option.text.split(' - ')[0];
+                const status = option.text.includes('Available') ? 'available' : 'busy';
+                
+                document.getElementById('previewName').textContent = name;
+                document.getElementById('previewContact').textContent = 'Ready for assignment';
+                
+                const statusBadge = document.getElementById('previewStatus');
+                statusBadge.textContent = status.toUpperCase();
+                statusBadge.className = `badge bg-${status === 'available' ? 'success' : 'warning'}`;
+            }
+            
+            function submitAssignment() {
+                const reportId = document.getElementById('reportId').value;
+                const technicianId = document.getElementById('technicianSelect').value;
+                const priority = document.getElementById('prioritySelect').value;
+                
+                if (!technicianId) {
+                    showAlert('Please select a technician', 'warning');
+                    return;
+                }
+                
+                // Simulate API call
+                const submitBtn = document.getElementById('confirmAssignBtn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Assigning...';
+                submitBtn.disabled = true;
+                
+                setTimeout(function() {
+                    // Simulate successful assignment
+                    showAlert(`Report #${reportId} successfully assigned!`, 'success');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('assignmentModal'));
+                    modal.hide();
+                    
+                    // Reset button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    // Update stats (in a real app, this would come from the server)
+                    updateStatsAfterAssignment();
+                    
+                }, 1500);
+            }
+            
+            function updateStatsAfterAssignment() {
+                // Update the stats to reflect the new assignment
+                const unassignedCount = document.getElementById('unassignedCount');
+                const assignedCount = document.getElementById('assignedCount');
+                const availableTechCount = document.getElementById('availableTechCount');
+                
+                if (unassignedCount && assignedCount && availableTechCount) {
+                    let unassigned = parseInt(unassignedCount.textContent);
+                    let assigned = parseInt(assignedCount.textContent);
+                    let available = parseInt(availableTechCount.textContent);
+                    
+                    if (unassigned > 0) {
+                        unassignedCount.textContent = unassigned - 1;
+                        assignedCount.textContent = assigned + 1;
+                        availableTechCount.textContent = available - 1;
+                    }
+                }
+            }
+            
+            // Save technician functionality
+            document.getElementById('saveTechnicianBtn').addEventListener('click', function() {
+                const form = document.getElementById('addTechnicianForm');
+                const formData = new FormData(form);
+                
+                // Simple validation
+                if (!formData.get('name') || !formData.get('phone') || !formData.get('email')) {
+                    showAlert('Please fill in all required fields', 'warning');
+                    return;
+                }
+                
+                // Simulate API call
+                const submitBtn = document.getElementById('saveTechnicianBtn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+                submitBtn.disabled = true;
+                
+                setTimeout(function() {
+                    // Simulate successful save
+                    showAlert(`Technician ${formData.get('name')} added successfully!`, 'success');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addTechnicianModal'));
+                    modal.hide();
+                    
+                    // Reset form and button
+                    form.reset();
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    // Update stats (in a real app, this would come from the server)
+                    const totalTechCount = document.getElementById('totalTechCount');
+                    const availableTechCount = document.getElementById('availableTechCount');
+                    
+                    if (totalTechCount && availableTechCount) {
+                        let total = parseInt(totalTechCount.textContent);
+                        let available = parseInt(availableTechCount.textContent);
+                        
+                        totalTechCount.textContent = total + 1;
+                        availableTechCount.textContent = available + 1;
+                    }
+                    
+                }, 1500);
+            });
+            
+            // Utility function to show alerts
+            function showAlert(message, type) {
+                // Remove any existing alerts
+                const existingAlert = document.querySelector('.alert-toast');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+                
+                const alertClass = type === 'success' ? 'alert-success' : 
+                                 type === 'warning' ? 'alert-warning' : 'alert-danger';
+                
+                const alertHtml = `
+                    <div class="alert ${alertClass} alert-dismissible fade show alert-toast position-fixed" 
+                         style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', alertHtml);
+                
+                // Auto remove after 5 seconds
+                setTimeout(function() {
+                    const alert = document.querySelector('.alert-toast');
+                    if (alert) {
+                        alert.remove();
+                    }
+                }, 5000);
+            }
+            
+            // Dark mode toggle functionality
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if(currentTheme === 'dark'){ 
+                document.body.setAttribute('data-theme','dark'); 
+                darkModeToggle.checked = true; 
+            }
+            
+            darkModeToggle.addEventListener('change', ()=> {
+                if(darkModeToggle.checked){ 
+                    document.body.setAttribute('data-theme','dark'); 
+                    localStorage.setItem('theme','dark'); 
+                }
+                else{ 
+                    document.body.removeAttribute('data-theme'); 
+                    localStorage.setItem('theme','light'); 
+                }
+            });
+            
+            // User menu toggle functionality
+            function toggleMenu(event) {
+                event.stopPropagation();
+                const menu = event.target.closest('.user-menu');
+                const content = menu.querySelector('.user-menu-content');
+                content.classList.toggle('active');
+            }
+            
+            document.addEventListener('click', e => {
+                document.querySelectorAll('.user-menu').forEach(menu => {
+                    menu.querySelector('.user-menu-content').classList.remove('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

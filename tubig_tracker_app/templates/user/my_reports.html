@@ -1,0 +1,859 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reports | Tubig Tracker</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/user/my_reports.css' %}">
+
+  <style>
+
+    :root {
+  --primary: #1565c0;
+  --primary-dark: #0d47a1;
+  --primary-light: #e3f2fd;
+  --secondary: #4caf50;
+  --accent: #ff9800;
+  --danger: #e53935;
+  --danger-dark: #c62828;
+  --text: #333333;
+  --text-light: #666666;
+  --text-lighter: #888888;
+  --bg: #f8fbff;
+  --card-bg: #ffffff;
+  --border: #e0e0e0;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: all 0.3s ease;
+}
+
+[data-theme="dark"] {
+  --primary: #1e88e5;
+  --primary-dark: #1565c0;
+  --primary-light: #0d47a1;
+  --secondary: #66bb6a;
+  --accent: #ffb74d;
+  --danger: #ef5350;
+  --danger-dark: #e53935;
+  --text: #f5f5f5;
+  --text-light: #e0e0e0;
+  --text-lighter: #bdbdbd;
+  --bg: #121212;
+  --card-bg: #1e1e1e;
+  --border: #333333;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  transition: var(--transition);
+  line-height: 1.6;
+}
+
+/* ENHANCED SIDEBAR - LARGER */
+.sidebar {
+  width: 450px;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 0;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 45px 35px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.sidebar-header img.logo {
+  height: 150px;
+  display: block;
+  margin: 0 auto 10px auto;
+}
+
+.sidebar h2 {
+  font-size: 2rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.nav {
+  padding: 35px 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 45px 30px;
+  border-radius: var(--radius-sm);
+  margin: 8px 0;
+  transition: var(--transition);
+  font-weight: 600;
+  font-size: 1.5rem;
+  border: 1px solid transparent;
+}
+
+.nav a:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateX(8px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav a.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateX(8px);
+}
+
+.nav a i {
+  width: 35px;
+  text-align: center;
+  font-size: 2rem;
+}
+
+/* MAIN CONTENT - ADJUSTED FOR LARGER SIDEBAR */
+.main-content {
+  margin-left: 450px;
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+  background-color: var(--bg);
+  animation: fadeIn 0.5s ease;
+  transition: var(--transition);
+  min-height: 100vh;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ENHANCED PAGE HEADER */
+.page-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+h1 {
+  color: var(--primary);
+  margin: 0 0 15px 0;
+  font-weight: 700;
+  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  transition: var(--transition);
+}
+
+h1 i {
+  color: var(--accent);
+  font-size: 2.2rem;
+}
+
+.subtitle {
+  color: var(--text-light);
+  font-size: 1.2rem;
+  margin: 0;
+  transition: var(--transition);
+  font-weight: 400;
+}
+
+/* ENHANCED CONTAINER */
+.container {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 40px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.container:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+/* ENHANCED TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-size: 1rem;
+}
+
+thead {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+}
+
+th, td {
+  padding: 20px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+th {
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+th::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 15px;
+  right: 15px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+tr {
+  transition: var(--transition);
+}
+
+tr:hover {
+  background-color: var(--primary-light);
+  transform: translateX(5px);
+}
+
+/* ENHANCED BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+  min-width: 120px;
+  justify-content: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.btn-view {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-delete {
+  background: var(--danger);
+  color: white;
+}
+
+/* ENHANCED STATUS BADGES */
+.status-pending {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 100px;
+  text-align: center;
+}
+
+.status-in-progress {
+  background: linear-gradient(135deg, #2196f3, #0d47a1);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 100px;
+  text-align: center;
+}
+
+.status-resolved {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ENHANCED MODAL */
+#reportModal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
+}
+
+#reportModal .modal-content {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: var(--radius);
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-hover);
+  border: 1px solid var(--border);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#closeModal {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--text-light);
+  transition: var(--transition);
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+#closeModal:hover {
+  color: var(--danger);
+  background: var(--primary-light);
+  transform: scale(1.1);
+}
+
+#modal-body {
+  margin-top: 20px;
+}
+
+#modal-body h3 {
+  color: var(--primary);
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 10px;
+}
+
+#modal-body p {
+  margin: 15px 0;
+  line-height: 1.6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+#modal-body strong {
+  color: var(--text);
+  font-weight: 600;
+  min-width: 120px;
+}
+
+/* Loading State */
+.container tbody tr td[colspan] {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+/* Empty State */
+.container tbody tr td[colspan] {
+  background: var(--bg);
+  font-style: italic;
+}
+
+/* Map Link Enhancement */
+a[href*="maps"] {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+a[href*="maps"]:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 380px;
+  }
+  
+  .main-content {
+    margin-left: 380px;
+    padding: 30px;
+  }
+  
+  .nav a {
+    padding: 35px 25px;
+    font-size: 1.3rem;
+  }
+  
+  .container {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    width: 320px;
+  }
+  
+  .main-content {
+    margin-left: 320px;
+    padding: 25px;
+  }
+  
+  h1 {
+    font-size: 2.2rem;
+  }
+  
+  .container {
+    padding: 25px;
+  }
+  
+  table {
+    font-size: 0.95rem;
+  }
+  
+  th, td {
+    padding: 15px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    transform: none;
+  }
+  
+  .sidebar-header {
+    padding: 25px 20px;
+  }
+  
+  .sidebar-header img.logo {
+    height: 80px;
+  }
+  
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 20px;
+  }
+  
+  .nav a {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 15px;
+    font-size: 1rem;
+    gap: 10px;
+  }
+  
+  .nav a i {
+    font-size: 1.2rem;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+  
+  .container {
+    padding: 20px;
+    overflow-x: auto;
+  }
+  
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn {
+    min-width: 100px;
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-content {
+    padding: 15px;
+  }
+  
+  .container {
+    padding: 15px;
+    margin: 0 -15px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  table {
+    font-size: 0.85rem;
+  }
+  
+  th, td {
+    padding: 12px 8px;
+  }
+  
+  .status-pending,
+  .status-in-progress,
+  .status-resolved {
+    min-width: 80px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+  
+  .btn {
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  #reportModal .modal-content {
+    padding: 25px 20px;
+    margin: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav a {
+    padding: 15px 10px;
+    font-size: 0.9rem;
+  }
+  
+  th, td {
+    padding: 10px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .container tbody tr td[colspan] {
+    padding: 40px 15px;
+    font-size: 1rem;
+  }
+  
+  #modal-body p {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  #modal-body strong {
+    min-width: auto;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .sidebar {
+    display: none;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+  
+  .btn {
+    display: none;
+  }
+  
+  .container {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+    /* Modal styles */
+    #reportModal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    #reportModal .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 600px;
+      width: 90%;
+      position: relative;
+    }
+    #closeModal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* Status badges */
+    .status-pending { color: #ff9800; font-weight: bold; }
+    .status-in-progress { color: #2196f3; font-weight: bold; }
+    .status-resolved { color: #4caf50; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'add_complaint' %}"><i class="fas fa-exclamation-circle"></i> Report Issue</a>
+        <a href="{% url 'my_reports' %}" class="active"><i class="fas fa-clipboard-list"></i> My Reports</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="page-header">
+      <h1><i class="fas fa-clipboard-list"></i> My Reports</h1>
+      <p class="subtitle">View and manage your submitted water reports</p>
+    </div>
+
+    <div class="container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Date Submitted</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+          <tr>
+            <td colspan="7" style="text-align:center;">Loading reports...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Report Detail Modal -->
+    <div id="reportModal">
+      <div class="modal-content">
+        <span id="closeModal">&times;</span>
+        <div id="modal-body">
+          <!-- Report details will be loaded here via AJAX -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let userReports = [];
+
+    async function loadUserReports() {
+      try {
+        const response = await fetch("{% url 'api_user_reports' %}");
+        if (!response.ok) throw new Error('Failed to fetch reports');
+        const data = await response.json();
+        const reports = data.reports;
+
+        // Only update table if data changed
+        if (JSON.stringify(userReports) !== JSON.stringify(reports)) {
+          userReports = reports;
+          updateUserTable();
+        }
+      } catch (err) {
+        console.error("Error loading reports:", err);
+      }
+    }
+
+    function updateUserTable() {
+      const tbody = document.getElementById('reportsTableBody');
+
+      if (!userReports.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No reports found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = userReports.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.title}</td>
+          <td>${r.description}</td>
+          <td>
+            ${r.latitude && r.longitude 
+              ? `<a href="https://www.google.com/maps?q=${r.latitude},${r.longitude}" target="_blank">View on Map</a>` 
+              : 'N/A'}
+          </td>
+          <td>
+            <span class="status-${r.status.toLowerCase().replace(' ', '-')}">${r.status}</span>
+          </td>
+          <td>${new Date(r.date_submitted).toLocaleString()}</td>
+          <td>
+            <button onclick="openReportModal(${r.id})" class="btn btn-view"><i class="fas fa-eye"></i> View</button>
+            <a href="/delete-report/${r.id}/" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this report?');"><i class="fas fa-trash"></i> Delete</a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openReportModal(reportId) {
+      const modal = document.getElementById('reportModal');
+      const modalBody = document.getElementById('modal-body');
+
+      modalBody.innerHTML = 'Loading...';
+
+      fetch(`/report/${reportId}/`)
+        .then(res => res.ok ? res.text() : Promise.reject('Report not found'))
+        .then(html => {
+          modalBody.innerHTML = html;
+          modal.style.display = 'flex';
+        })
+        .catch(err => {
+          modalBody.innerHTML = `<p class="text-danger">Error loading report: ${err}</p>`;
+          modal.style.display = 'flex';
+        });
+    }
+
+    document.getElementById('closeModal').onclick = () => {
+      document.getElementById('reportModal').style.display = 'none';
+    };
+    window.onclick = function(event) {
+      if (event.target == document.getElementById('reportModal')) {
+        document.getElementById('reportModal').style.display = 'none';
+      }
+    };
+
+    // Initial load and auto-refresh every 5 seconds
+    loadUserReports();
+    setInterval(loadUserReports, 5000);
+  </script>
+</body>
+</html>
