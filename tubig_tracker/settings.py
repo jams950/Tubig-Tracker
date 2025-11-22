@@ -12,7 +12,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-nn^yowa52ss%g68nl2-mm
 
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['*'] if DEBUG else os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -110,6 +110,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'tubig_tracker_app/static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# WhiteNoise settings
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 INSTALLED_APPS += ['channels']
 ASGI_APPLICATION = 'tubig_tracker.asgi.application'
