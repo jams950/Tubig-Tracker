@@ -379,6 +379,48 @@
             letter-spacing: 1px;
         }
 
+        /* 3 Dots Loading Animation */
+        .dots-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            animation: dotPulse 1.4s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(66, 165, 245, 0.6);
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dotPulse {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1.2);
+                opacity: 1;
+                box-shadow: 0 0 25px rgba(66, 165, 245, 1);
+            }
+        }
+
         .progress-container {
             display: flex;
             align-items: center;
@@ -534,7 +576,12 @@
 
     <!-- Loading Section -->
     <div class="loading-section">
-        <div class="loading-text">Loading Water Management System...</div>
+        <div class="loading-text">Loading Water Management System</div>
+        <div class="dots-loading">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
         <div class="counter" id="counter">0</div>
         <div class="progress-container">
             <div class="progress-bar">

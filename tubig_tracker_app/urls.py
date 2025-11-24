@@ -23,7 +23,7 @@ urlpatterns = [
     # ------------------------------
     path('my-reports/', views.my_reports, name='my_reports'),
     # path('report/<int:pk>/', views.report_detail_view, name='report-detail'),
-    path('report/<int:pk>/delete/', views.delete_report, name='delete_report'),
+    path('delete-report/<int:report_id>/', views.delete_user_report, name='delete_user_report'),
 
     # ------------------------------
     # COMPLAINT SUBMISSION
@@ -90,7 +90,7 @@ urlpatterns = [
 
     #path('manage-reports/', views.manage_reports, name='manage_reports'),
     path('report/<int:id>/', views.view_report, name='view_report'),
-    path('report/<int:id>/delete/', views.delete_report, name='delete_report'),
+
     path('api/my-reports/', views.api_user_reports, name='api_user_reports'),
     
 

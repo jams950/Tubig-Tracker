@@ -467,6 +467,15 @@ body[data-theme='dark'] {
 .dot.progress { background: #2196f3; box-shadow: 0 0 10px rgba(33, 150, 243, 0.5); }
 .dot.resolved { background: #4caf50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
 
+.custom-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-marker:hover {
+  transform: scale(1.1);
+}
+
 .water-marker-3d {
   animation: pinFloat 3s ease-in-out infinite, pinGlow 2s ease-in-out infinite alternate;
 }
@@ -481,11 +490,45 @@ body[data-theme='dark'] {
   100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.8)); }
 }
 
+/* Leaflet popup styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px;
+  line-height: 1.4;
+}
+
 #map {
   height: 500px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* Ensure map loads properly */
+.leaflet-container {
+  background: #e3f2fd;
+}
+
+.leaflet-control-zoom {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.leaflet-control-zoom a {
+  border-radius: 4px;
+  color: var(--ocean-blue);
+  font-weight: bold;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--ocean-blue);
+  color: white;
 }
 
 .recent-reports {
@@ -2240,10 +2283,23 @@ footer {
       }
     }
 
-    const map = L.map('map', { minZoom: 13, maxZoom: 18 }).setView([11.5411, 124.5405], 13);
-    const bounds = L.latLngBounds(L.latLng(11.4,124.4), L.latLng(11.7,124.7));
+    const map = L.map('map', { minZoom: 10, maxZoom: 18 }).setView([11.5411, 124.5405], 13);
+    const bounds = L.latLngBounds(L.latLng(11.2,124.2), L.latLng(11.8,124.8));
     map.setMaxBounds(bounds);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+    
+    console.log('DEBUG: Map initialized at Biliran coordinates');
+    
+    // Add map ready event
+    map.whenReady(function() {
+      console.log('DEBUG: Map is ready');
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    });
 
     let markers = [];
     let allComplaints = [];
@@ -2252,7 +2308,12 @@ footer {
     const itemsPerPage = 5;
 
     function updateLastUpdatedTime() {
-      document.getElementById('lastUpdatedTime').textContent = new Date().toLocaleTimeString();
+      const timeElement = document.getElementById('lastUpdatedTime');
+      if (timeElement) {
+        timeElement.textContent = new Date().toLocaleTimeString();
+      } else {
+        console.log('DEBUG: lastUpdatedTime element not found');
+      }
     }
 
     async function loadComplaints(){
@@ -2265,8 +2326,16 @@ footer {
         });
         if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const newComplaints = await res.json();
+        
+        console.log(`DEBUG: Received ${newComplaints.length} reports from API`);
+        
+        // Log first few reports for debugging
+        if (newComplaints.length > 0) {
+          console.log('DEBUG: First report data:', newComplaints[0]);
+        }
 
-        if(JSON.stringify(allComplaints)!==JSON.stringify(newComplaints)){
+        // Always update if data exists, even if it's the same (for initial load)
+        if(newComplaints.length > 0 && (allComplaints.length === 0 || JSON.stringify(allComplaints)!==JSON.stringify(newComplaints))){
           allComplaints = newComplaints;
           filteredComplaints = newComplaints;
           currentPage = 1;
@@ -2275,73 +2344,29 @@ footer {
           updateStats(allComplaints);
           updatePagination();
           updateLastUpdatedTime();
+          console.log('DEBUG: Dashboard data updated successfully');
+        } else if (newComplaints.length === 0) {
+          console.log('DEBUG: No reports received from API');
+          loadSampleData();
         }
       } catch(err){ 
-        console.error(err); 
+        console.error('Error loading complaints:', err); 
+        console.error('Error details:', err.message);
         // Load sample data if API fails
         loadSampleData();
       }
     }
 
     function loadSampleData() {
-      const sampleData = [
-        {
-          id: 1,
-          title: 'Water pipe leakage at Main Street',
-          user: 'test',
-          area: 'Naval',
-          barangay: 'Salangi',
-          status: 'Pending',
-          created_at: new Date().toISOString(),
-          latitude: 11.5411,
-          longitude: 124.5405
-        },
-        {
-          id: 2,
-          title: 'Low water pressure in Purok 5',
-          user: 'resident1',
-          area: 'Caibiran',
-          barangay: 'Centro',
-          status: 'In Progress',
-          created_at: new Date().toISOString(),
-          latitude: 11.5500,
-          longitude: 124.5500
-        },
-        {
-          id: 3,
-          title: 'No water supply',
-          user: 'user123',
-          area: 'Biliran',
-          barangay: 'Poblacion',
-          status: 'Resolved',
-          created_at: new Date().toISOString(),
-          latitude: 11.5300,
-          longitude: 124.5300
-        }
-      ];
-      
-      allComplaints = sampleData;
-      filteredComplaints = sampleData;
+      // Show message if no real data available
+      allComplaints = [];
+      filteredComplaints = [];
       currentPage = 1;
-      updateMap(allComplaints);
       updateTable(filteredComplaints);
       updateStats(allComplaints);
       updatePagination();
       
-      // Force add sample pins
-      sampleData.forEach(c => {
-        const color = c.status === 'Pending' ? '#ff9800' : c.status === 'In Progress' ? '#2196f3' : '#4caf50';
-        const marker = L.marker([c.latitude, c.longitude], {
-          icon: L.divIcon({
-            html: `<div style="width:20px;height:20px;background:${color};border:2px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>`,
-            className: 'simple-pin',
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-          })
-        }).addTo(map);
-        marker.bindPopup(`<b>${c.title}</b><br>Status: ${c.status}`);
-        markers.push(marker);
-      });
+      console.log('No reports found or API failed');
     }
 
     function filterComplaints() {
@@ -2363,6 +2388,8 @@ footer {
       const startIdx = (currentPage - 1) * itemsPerPage;
       const endIdx = startIdx + itemsPerPage;
       const pageData = data.slice(startIdx, endIdx);
+      
+      console.log(`DEBUG: Updating table with ${pageData.length} reports on page ${currentPage}`);
 
       if(pageData.length === 0 && currentPage === 1){
         tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-light);">No reports found</td></tr>';
@@ -2434,75 +2461,115 @@ footer {
     }
 
     function updateMap(data){
+      // Clear existing markers
       markers.forEach(m=>map.removeLayer(m));
       markers=[];
-      data.forEach(c=>{
-        if(!c.latitude || !c.longitude) return;
-        const statusNormalized = c.status.trim().toLowerCase().replace(' ','_');
-        const color = statusNormalized==='pending'? '#ff9800' : statusNormalized==='in_progress'? '#2196f3':'#4caf50';
-        const marker = L.marker([c.latitude, c.longitude], {
-          icon: L.divIcon({
-            html: `
-              <div class="water-marker-3d" style="
-                position: relative;
-                width: 30px;
-                height: 40px;
-                transform: translateX(-15px) translateY(-40px);
-              ">
-                <div style="
-                  position: absolute;
-                  top: 0;
-                  left: 50%;
-                  width: 30px;
-                  height: 30px;
-                  background: linear-gradient(135deg, ${color} 0%, ${color}dd 50%, ${color}aa 100%);
-                  border-radius: 50% 50% 50% 0;
-                  transform: translateX(-50%) rotate(-45deg);
-                  box-shadow: 
-                    0 4px 8px rgba(0,0,0,0.3),
-                    inset -2px -2px 4px rgba(0,0,0,0.2),
-                    inset 2px 2px 4px rgba(255,255,255,0.3);
-                  border: 2px solid white;
-                "></div>
-                <div style="
-                  position: absolute;
-                  top: 3px;
-                  left: 50%;
-                  transform: translateX(-50%) rotate(-45deg);
-                  width: 16px;
-                  height: 16px;
-                  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
-                  border-radius: 50%;
-                  z-index: 2;
-                "></div>
-                <div style="
-                  position: absolute;
-                  bottom: -5px;
-                  left: 50%;
-                  transform: translateX(-50%);
-                  width: 8px;
-                  height: 8px;
-                  background: rgba(0,0,0,0.3);
-                  border-radius: 50%;
-                  filter: blur(2px);
-                "></div>
-              </div>
-            `,
-            className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
-          })
-        }).addTo(map);
-        marker.bindPopup(`
-          <div style="min-width:200px;">
-            <h4 style="margin:0 0 10px;color:#1565c0;">${c.title}</h4>
-            <p><strong>Status:</strong> <span style="color:${color};font-weight:bold;">${c.status}</span></p>
-            <p><strong>User:</strong> ${c.user}</p>
-            <p><strong>Area:</strong> ${c.area||'N/A'}</p>
-            <p><strong>Barangay:</strong> ${c.barangay||'N/A'}</p>
-            <p><strong>Date:</strong> ${new Date(c.created_at).toLocaleDateString()}</p>
-          </div>
-        `);
-        markers.push(marker);
+      
+      console.log(`DEBUG: Processing ${data.length} reports for map`);
+      
+      // Process all reports and check coordinates
+      data.forEach((c, index) => {
+        console.log(`Report ${index + 1}: ID=${c.id}, Lat=${c.latitude}, Lng=${c.longitude}, Status=${c.status}`);
+        
+        // Check if coordinates exist and are valid numbers
+        if (c.latitude !== null && c.longitude !== null && 
+            !isNaN(parseFloat(c.latitude)) && !isNaN(parseFloat(c.longitude))) {
+          
+          const lat = parseFloat(c.latitude);
+          const lng = parseFloat(c.longitude);
+          
+          // Validate coordinates are within reasonable bounds (Philippines area)
+          if (lat >= 4.0 && lat <= 21.0 && lng >= 116.0 && lng <= 127.0) {
+            
+            // Determine pin color based on status
+            let color;
+            const status = c.status.trim().toLowerCase();
+            
+            if (status === 'pending') {
+              color = '#ff9800'; // Orange for pending
+            } else if (status === 'in progress') {
+              color = '#2196f3'; // Blue for in progress
+            } else if (status === 'resolved') {
+              color = '#4caf50'; // Green for resolved
+            } else {
+              color = '#9e9e9e'; // Gray for unknown status
+            }
+            
+            console.log(`Creating marker for report ${c.id} at ${lat}, ${lng} with color ${color}`);
+            
+            try {
+              // Create a simple, reliable marker
+              const marker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                  html: `
+                    <div style="
+                      width: 25px;
+                      height: 25px;
+                      background-color: ${color};
+                      border: 3px solid white;
+                      border-radius: 50%;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                      position: relative;
+                    ">
+                      <div style="
+                        position: absolute;
+                        bottom: -8px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 0;
+                        height: 0;
+                        border-left: 6px solid transparent;
+                        border-right: 6px solid transparent;
+                        border-top: 8px solid ${color};
+                      "></div>
+                    </div>
+                  `,
+                  className: 'custom-marker',
+                  iconSize: [25, 33],
+                  iconAnchor: [12, 33],
+                  popupAnchor: [0, -33]
+                })
+              }).addTo(map);
+              
+              // Add popup with report details
+              marker.bindPopup(`
+                <div style="min-width:200px; font-family: Arial, sans-serif;">
+                  <h4 style="margin:0 0 10px; color:#1565c0; font-size:14px;">${c.title}</h4>
+                  <p style="margin:5px 0;"><strong>Status:</strong> <span style="color:${color}; font-weight:bold;">${c.status}</span></p>
+                  <p style="margin:5px 0;"><strong>Reporter:</strong> ${c.user}</p>
+                  <p style="margin:5px 0;"><strong>Area:</strong> ${c.area || 'N/A'}</p>
+                  <p style="margin:5px 0;"><strong>Barangay:</strong> ${c.barangay || 'N/A'}</p>
+                  <p style="margin:5px 0;"><strong>Date:</strong> ${new Date(c.created_at).toLocaleDateString()}</p>
+                  <p style="margin:5px 0; font-size:11px; color:#666;"><strong>Coordinates:</strong> ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+                </div>
+              `);
+              
+              markers.push(marker);
+              console.log(`Successfully created marker for report ${c.id}`);
+              
+            } catch (error) {
+              console.error(`Error creating marker for report ${c.id}:`, error);
+            }
+          } else {
+            console.log(`Report ${c.id} has invalid coordinates: ${lat}, ${lng}`);
+          }
+        } else {
+          console.log(`Report ${c.id} missing coordinates: lat=${c.latitude}, lng=${c.longitude}`);
+        }
       });
+      
+      console.log(`DEBUG: Created ${markers.length} markers on map`);
+      
+      // Fit map to show all markers or set default view
+      if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+        console.log(`DEBUG: Map fitted to show ${markers.length} markers`);
+      } else {
+        // Set default view to Biliran area if no markers
+        map.setView([11.5411, 124.5405], 13);
+        console.log('DEBUG: No markers found, using default map view');
+      }
     }
 
     function updateStats(data){
@@ -2510,6 +2577,9 @@ footer {
       const pending = data.filter(c=>c.status.trim().toLowerCase()==='pending').length;
       const inProgress = data.filter(c=>c.status.trim().toLowerCase()==='in progress').length;
       const resolved = data.filter(c=>c.status.trim().toLowerCase()==='resolved').length;
+      
+      console.log(`DEBUG: Updating stats - Total: ${total}, Pending: ${pending}, In Progress: ${inProgress}, Resolved: ${resolved}`);
+      
       document.getElementById('totalReportsCount').textContent=total;
       document.getElementById('pendingCount').textContent=pending;
       document.getElementById('inProgressCount').textContent=inProgress;
@@ -2527,12 +2597,34 @@ footer {
 
 
 
+    // Initialize dashboard
+    console.log('DEBUG: Initializing admin dashboard...');
+    
+    // Force map to refresh after a short delay
+    setTimeout(() => {
+      map.invalidateSize();
+      console.log('DEBUG: Map size invalidated');
+    }, 500);
+    
+    // Load initial data
     loadComplaints();
     updateLastUpdatedTime();
-    setInterval(loadComplaints,5000);
+    
+    // Set up periodic refresh
+    setInterval(loadComplaints, 10000); // Increased to 10 seconds
 
     document.addEventListener('visibilitychange', function(){
-      if(!document.hidden){ loadComplaints(); }
+      if(!document.hidden){ 
+        console.log('DEBUG: Page became visible, refreshing data...');
+        loadComplaints(); 
+      }
+    });
+    
+    // Add window resize handler for map
+    window.addEventListener('resize', function() {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
     });
 
     // Mobile menu functions

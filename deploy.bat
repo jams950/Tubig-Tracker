@@ -1,25 +1,20 @@
 @echo off
-echo Installing Git...
-winget install --id Git.Git -e --source winget
+echo Starting deployment process...
 
-echo Waiting for Git installation...
-timeout /t 10
-
-echo Refreshing PATH...
-call refreshenv
-
-echo Initializing Git repository...
-git init
-
-echo Adding all files...
+echo.
+echo 1. Adding all files to git...
 git add .
 
-echo Creating initial commit...
-git commit -m "Initial commit - Tubig Tracker Django App"
+echo.
+echo 2. Committing changes...
+git commit -m "Deploy: Fixed admin dashboard with working map pins and report counts"
 
-echo Please create a repository on GitHub first, then run:
-echo git remote add origin https://github.com/yourusername/tubig-tracker.git
-echo git branch -M main
-echo git push -u origin main
+echo.
+echo 3. Pushing to main branch...
+git push origin main
 
+echo.
+echo Deployment complete! 
+echo Check your Render dashboard for build status.
+echo.
 pause

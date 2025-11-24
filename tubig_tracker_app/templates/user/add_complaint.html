@@ -405,6 +405,9 @@ form:hover {
 .file-upload input[type="file"] {
   position: absolute;
   left: -9999px;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 /* MAP CONTAINER */
@@ -990,11 +993,15 @@ footer {
       <div class="form-group">
         <label for="photo"><i class="fas fa-camera"></i> Upload Photo</label>
         <div class="file-upload">
-          <label class="file-upload-label">
+          <label class="file-upload-label" for="photo">
             <i class="fas fa-cloud-upload-alt"></i>
             <span id="file-name">Choose an image file (optional)</span>
           </label>
           <input type="file" id="photo" name="photo" accept="image/*">
+        </div>
+        <div id="image-preview" style="margin-top: 15px; display: none;">
+          <img id="preview-img" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+          <button type="button" id="remove-image" style="display: block; margin-top: 10px; padding: 8px 16px; background: #e53935; color: white; border: none; border-radius: 6px; cursor: pointer;">Remove Image</button>
         </div>
       </div>
 
@@ -1037,6 +1044,53 @@ footer {
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <script>
+/* =====================
+   FILE UPLOAD HANDLING
+===================== */
+document.getElementById('photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const fileName = document.getElementById('file-name');
+    const preview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    
+    if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            e.target.value = '';
+            return;
+        }
+        
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB.');
+            e.target.value = '';
+            return;
+        }
+        
+        // Update file name display
+        fileName.textContent = file.name;
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        fileName.textContent = 'Choose an image file (optional)';
+        preview.style.display = 'none';
+    }
+});
+
+// Remove image functionality
+document.getElementById('remove-image').addEventListener('click', function() {
+    document.getElementById('photo').value = '';
+    document.getElementById('file-name').textContent = 'Choose an image file (optional)';
+    document.getElementById('image-preview').style.display = 'none';
+});
+
 /* =====================
    MAP SETUP 
 ===================== */
@@ -1193,7 +1247,20 @@ document.querySelector("form").addEventListener("submit", function (e) {
     if (!document.getElementById("latitude").value) {
         e.preventDefault();
         alert("Please select a location from the map first!");
+        return;
     }
+    
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    submitBtn.disabled = true;
+    
+    // Re-enable button after 10 seconds as fallback
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 10000);
 });
 
   </script>

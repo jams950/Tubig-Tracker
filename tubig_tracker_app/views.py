@@ -95,6 +95,8 @@ def admin_dashboard(request):
     pending_reports = Report.objects.filter(status='Pending').count()
     in_progress_reports = Report.objects.filter(status='In Progress').count()
     active_users = User.objects.count()
+    
+    print(f"DEBUG: Admin Dashboard Stats - Total: {total_reports}, Pending: {pending_reports}, In Progress: {in_progress_reports}, Resolved: {resolved_reports}")
 
     # Reports per month
     reports_per_month = (
@@ -125,10 +127,10 @@ def admin_dashboard(request):
     latest_user = User.objects.order_by('-date_joined').first()
     latest_report = Report.objects.order_by('-created_at').first()
     if latest_user:
-        system_notifications.append(f"👤 New user registered: {latest_user.username}")
+        system_notifications.append(f"New user registered: {latest_user.username}")
     if latest_report:
-        system_notifications.append(f"📝 New report received: {latest_report.title}")
-    system_notifications.append("✅ System check completed successfully.")
+        system_notifications.append(f"New report received: {latest_report.title}")
+    system_notifications.append("System check completed successfully.")
 
     context = {
         'total_users': active_users,
@@ -140,6 +142,16 @@ def admin_dashboard(request):
         'user_growth_data': user_growth_data,
         'system_notifications': system_notifications,
     }
+    
+    # Debug context data without printing to avoid encoding issues
+    print(f"DEBUG: Total reports in context: {context['total_reports']}")
+    print(f"DEBUG: Pending reports: {context['pending_reports']}")
+    print(f"DEBUG: In progress reports: {context['in_progress_reports']}")
+    print(f"DEBUG: Resolved reports: {context['resolved_reports']}")
+    
+    # Also check if we have any reports with coordinates
+    reports_with_coords = Report.objects.filter(latitude__isnull=False, longitude__isnull=False).count()
+    print(f"DEBUG: Reports with coordinates: {reports_with_coords}")
     return render(request, 'admin/admin_dashboard.html', context)
 
 # USER REPORTS
@@ -163,35 +175,75 @@ def add_complaint_view(request):
         if form.is_valid():
             complaint = form.save(commit=False)
             complaint.user = request.user
-            if complaint.latitude is None or complaint.longitude is None:
+            
+            # Get coordinates from form data
+            latitude = request.POST.get('latitude')
+            longitude = request.POST.get('longitude')
+            municipality = request.POST.get('municipality', '')
+            barangay = request.POST.get('barangay', '')
+            specific_location = request.POST.get('specific_location', '')
+            
+            print(f"DEBUG: Received coordinates - Lat: {latitude}, Lng: {longitude}")
+            print(f"DEBUG: Location details - Municipality: {municipality}, Barangay: {barangay}, Specific: {specific_location}")
+            
+            # Validate coordinates
+            if not latitude or not longitude:
                 messages.error(request, "Please select a location on the map before submitting.")
                 return redirect('add_complaint')
+            
+            try:
+                lat_float = float(latitude)
+                lng_float = float(longitude)
+                
+                # Validate coordinates are within Philippines bounds
+                if not (4.0 <= lat_float <= 21.0 and 116.0 <= lng_float <= 127.0):
+                    messages.error(request, "Invalid coordinates. Please select a location within the Philippines.")
+                    return redirect('add_complaint')
+                    
+                complaint.latitude = lat_float
+                complaint.longitude = lng_float
+                
+            except (ValueError, TypeError):
+                messages.error(request, "Invalid coordinate format. Please select a location on the map.")
+                return redirect('add_complaint')
+            
             complaint.save()
             photo_file = request.FILES.get('photo')
             if photo_file:
                 ComplaintPhoto.objects.create(complaint=complaint, photo=photo_file)
             
-            full_location = f"Brgy. {complaint.barangay}, {complaint.area}"
-            if complaint.purok:
-                full_location = f"Purok {complaint.purok}, " + full_location
+            # Build location string
+            location_parts = []
+            if specific_location:
+                location_parts.append(specific_location)
+            if barangay and barangay != 'Unknown':
+                location_parts.append(f"Brgy. {barangay}")
+            if municipality and municipality != 'Unknown':
+                location_parts.append(municipality)
             
-            Report.objects.create(
+            full_location = ", ".join(location_parts) if location_parts else f"Lat: {lat_float}, Lng: {lng_float}"
+            
+            # Create Report with validated coordinates
+            report = Report.objects.create(
                 title=complaint.title,
                 description=complaint.description,
                 reporter=request.user,
-                issue_type=complaint.area or "N/A",
+                issue_type=complaint.area or "Water Issue",
                 location=full_location,
-                address=complaint.barangay,
-                barangay=complaint.barangay,
-                latitude=complaint.latitude,
-                longitude=complaint.longitude,
+                address=barangay if barangay != 'Unknown' else municipality,
+                barangay=barangay if barangay != 'Unknown' else '',
+                latitude=lat_float,
+                longitude=lng_float,
                 image=photo_file if photo_file else None,
                 status='Pending'
             )
-            messages.success(request, "✅ Complaint submitted successfully!")
+            
+            print(f"DEBUG: Created report {report.id} with coordinates {report.latitude}, {report.longitude}")
+            messages.success(request, "Complaint submitted successfully!")
             return redirect('my_reports')
         else:
             messages.error(request, "Please correct the errors in the form.")
+            print(f"DEBUG: Form errors: {form.errors}")
     else:
         form = ComplaintForm()
     return render(request, 'user/add_complaint.html', {'form': form})
@@ -293,6 +345,16 @@ def delete_report_admin(request, report_id):
         report.delete()
         messages.success(request, "Report deleted.")
     return redirect('admin_manage_reports')
+
+@login_required
+def delete_user_report(request, report_id):
+    """Allow users to delete their own reports"""
+    report = get_object_or_404(Report, id=report_id, reporter=request.user)
+    if request.method == 'POST':
+        report.delete()
+        messages.success(request, "Report deleted successfully.")
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
 
 # ADMIN COMPLAINT ACTIONS
 @login_required
@@ -445,23 +507,55 @@ def mark_bill_paid(request, bill_id):
 
 # API ENDPOINTS
 @csrf_exempt
-
 def get_all_complaints(request):
     reports = Report.objects.all().select_related('reporter').order_by('-created_at')
-    data = [
-        {
+    data = []
+    valid_reports = 0
+    
+    print(f"DEBUG: Found {reports.count()} total reports in database")
+    
+    for r in reports:
+        # Process coordinates
+        lat = None
+        lng = None
+        
+        if r.latitude is not None and r.longitude is not None:
+            try:
+                lat = float(r.latitude)
+                lng = float(r.longitude)
+                # Validate coordinates are reasonable (Philippines bounds)
+                if 4.0 <= lat <= 21.0 and 116.0 <= lng <= 127.0:
+                    valid_reports += 1
+                    print(f"DEBUG: Report {r.id} has valid coordinates: {lat}, {lng}")
+                else:
+                    print(f"DEBUG: Report {r.id} coordinates out of bounds: {lat}, {lng}")
+                    lat = lng = None
+            except (ValueError, TypeError) as e:
+                print(f"DEBUG: Report {r.id} coordinate conversion error: {e}")
+                lat = lng = None
+        else:
+            print(f"DEBUG: Report {r.id} missing coordinates: lat={r.latitude}, lng={r.longitude}")
+        
+        report_data = {
             'id': r.id,
             'user': r.reporter.username if r.reporter else 'Unknown',
-            'title': r.title,
-            'status': r.status,
-            'latitude': float(r.latitude) if r.latitude else None,
-            'longitude': float(r.longitude) if r.longitude else None,
-            'area': r.issue_type or '',
-            'barangay': r.barangay or '',
+            'title': r.title or 'Untitled Report',
+            'status': r.status or 'Unknown',
+            'latitude': lat,
+            'longitude': lng,
+            'area': r.issue_type or 'General',
+            'barangay': r.barangay or 'Unknown',
             'created_at': r.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
-        for r in reports
-    ]
+        
+        data.append(report_data)
+    
+    print(f"DEBUG: API returning {len(data)} total reports, {valid_reports} with valid coordinates")
+    
+    # Log first report for debugging
+    if data:
+        print(f"DEBUG: First report data: {data[0]}")
+    
     return JsonResponse(data, safe=False)
 @login_required
 def get_complaints(request):
@@ -543,10 +637,14 @@ def view_report(request, id):
     report = get_object_or_404(Report, pk=id)
     return render(request, 'user/report_detail.html', {'report': report})
 
+@login_required
 def delete_report(request, id):
-    report = get_object_or_404(Report, pk=id)
-    report.delete()
-    return redirect('manage_reports')
+    report = get_object_or_404(Report, pk=id, reporter=request.user)
+    if request.method == 'POST':
+        report.delete()
+        messages.success(request, "Report deleted successfully.")
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
 
 @login_required
 def add_report_view(request):

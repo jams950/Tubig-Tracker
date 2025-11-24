@@ -23,6 +23,20 @@
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
+        .water-marker-3d {
+            animation: pinFloat 3s ease-in-out infinite, pinGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pinFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        @keyframes pinGlow {
+            0% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+            100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.8)); }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -2354,16 +2368,16 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
             
-            // Add some sample markers for water issues
+            // Add some sample markers for water issues (demo purposes)
             const issueMarkers = [
-                { lat: 14.6050, lng: 120.9800, type: 'leak', severity: 'high' },
-                { lat: 14.5950, lng: 120.9900, type: 'low-pressure', severity: 'medium' },
-                { lat: 14.6100, lng: 120.9700, type: 'no-water', severity: 'high' },
-                { lat: 14.5900, lng: 120.9950, type: 'leak', severity: 'low' },
-                { lat: 14.6000, lng: 120.9750, type: 'low-pressure', severity: 'medium' }
+                { lat: 14.6050, lng: 120.9800, type: 'Water Leak', severity: 'high' },
+                { lat: 14.5950, lng: 120.9900, type: 'Low Pressure', severity: 'medium' },
+                { lat: 14.6100, lng: 120.9700, type: 'No Water Supply', severity: 'high' },
+                { lat: 14.5900, lng: 120.9950, type: 'Water Leak', severity: 'low' },
+                { lat: 14.6000, lng: 120.9750, type: 'Low Pressure', severity: 'medium' }
             ];
             
-            // Define custom icons based on issue type and severity
+            // Define custom 3D pin icons based on issue type and severity
             const getIcon = (type, severity) => {
                 let color;
                 if (severity === 'high') color = '#e74c3c';
@@ -2371,19 +2385,71 @@
                 else color = '#2ecc71';
                 
                 return L.divIcon({
-                    className: 'custom-marker',
-                    html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
-                    iconSize: [26, 26],
-                    iconAnchor: [13, 13]
+                    html: `
+                      <div class="water-marker-3d" style="
+                        position: relative;
+                        width: 30px;
+                        height: 40px;
+                        transform: translateX(-15px) translateY(-40px);
+                      ">
+                        <div style="
+                          position: absolute;
+                          top: 0;
+                          left: 50%;
+                          width: 30px;
+                          height: 30px;
+                          background: linear-gradient(135deg, ${color} 0%, ${color}dd 50%, ${color}aa 100%);
+                          border-radius: 50% 50% 50% 0;
+                          transform: translateX(-50%) rotate(-45deg);
+                          box-shadow: 
+                            0 4px 8px rgba(0,0,0,0.3),
+                            inset -2px -2px 4px rgba(0,0,0,0.2),
+                            inset 2px 2px 4px rgba(255,255,255,0.3);
+                          border: 2px solid white;
+                        "></div>
+                        <div style="
+                          position: absolute;
+                          top: 3px;
+                          left: 50%;
+                          transform: translateX(-50%) rotate(-45deg);
+                          width: 16px;
+                          height: 16px;
+                          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
+                          border-radius: 50%;
+                          z-index: 2;
+                        "></div>
+                        <div style="
+                          position: absolute;
+                          bottom: -5px;
+                          left: 50%;
+                          transform: translateX(-50%);
+                          width: 8px;
+                          height: 8px;
+                          background: rgba(0,0,0,0.3);
+                          border-radius: 50%;
+                          filter: blur(2px);
+                        "></div>
+                      </div>
+                    `,
+                    className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
                 });
             };
             
             // Add markers to the map
             issueMarkers.forEach(issue => {
-                L.marker([issue.lat, issue.lng], { 
+                const marker = L.marker([issue.lat, issue.lng], { 
                     icon: getIcon(issue.type, issue.severity) 
-                }).addTo(map)
-                .bindPopup(`<b>Water Issue</b><br>Type: ${issue.type}<br>Severity: ${issue.severity}`);
+                }).addTo(map);
+                
+                marker.bindPopup(`
+                  <div style="min-width:200px;">
+                    <h4 style="margin:0 0 10px;color:#1565c0;">Water Issue Report</h4>
+                    <p><strong>Type:</strong> ${issue.type}</p>
+                    <p><strong>Severity:</strong> <span style="color:${issue.severity === 'high' ? '#e74c3c' : issue.severity === 'medium' ? '#f39c12' : '#2ecc71'};font-weight:bold;">${issue.severity}</span></p>
+                    <p><strong>Location:</strong> ${issue.lat.toFixed(4)}, ${issue.lng.toFixed(4)}</p>
+                    <p><strong>Status:</strong> Sample Data</p>
+                  </div>
+                `);
             });
             
             // Make map responsive

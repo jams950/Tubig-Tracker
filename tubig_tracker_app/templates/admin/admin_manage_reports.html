@@ -1122,191 +1122,93 @@ footer {
 
     var reportMarkers = {};
     
-    // Sample data for demonstration
-    const sampleReports = [
-      {
-        id: 1,
-        title: 'Water pipe leakage at Main Street',
-        status: 'Pending',
-        address: 'Naval, Salangi',
-        reporter: 'test',
-        latitude: 11.5411,
-        longitude: 124.5405,
-        image: null
-      },
-      {
-        id: 2,
-        title: 'Low water pressure in Purok 5',
-        status: 'In Progress',
-        address: 'Caibiran, Centro',
-        reporter: 'resident1',
-        latitude: 11.5500,
-        longitude: 124.5500,
-        image: null
-      },
-      {
-        id: 3,
-        title: 'No water supply',
-        status: 'Resolved',
-        address: 'Biliran, Poblacion',
-        reporter: 'user123',
-        latitude: 11.5300,
-        longitude: 124.5300,
-        image: null
-      }
-    ];
-    
-    // Add simple pins immediately
-    sampleReports.forEach(report => {
-      const color = report.status === 'Pending' ? '#ff9800' : report.status === 'In Progress' ? '#2196f3' : '#4caf50';
-      const marker = L.marker([report.latitude, report.longitude], {
-        icon: L.divIcon({
-          html: `<div style="width:20px;height:20px;background:${color};border:2px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>`,
-          className: 'simple-pin',
-          iconSize: [20, 20],
-          iconAnchor: [10, 10]
-        })
-      }).addTo(map);
-      marker.bindPopup(`<b>${report.title}</b><br>Status: ${report.status}<br>Reporter: ${report.reporter}`);
-      reportMarkers[report.id] = marker;
-    });
-    
-    // Add sample markers with 3D design
-    sampleReports.forEach(report => {
-      var color = report.status === "Resolved" ? "#4caf50" : report.status === "In Progress" ? "#2196f3" : "#ff9800";
-      var marker = L.marker([report.latitude, report.longitude], {
-        icon: L.divIcon({
-          html: `
-            <div class="water-marker-3d" style="
-              position: relative;
-              width: 30px;
-              height: 40px;
-              transform: translateX(-15px) translateY(-40px);
-            ">
-              <div style="
-                position: absolute;
-                top: 0;
-                left: 50%;
-                width: 30px;
-                height: 30px;
-                background: linear-gradient(135deg, ${color} 0%, ${color}dd 50%, ${color}aa 100%);
-                border-radius: 50% 50% 50% 0;
-                transform: translateX(-50%) rotate(-45deg);
-                box-shadow: 
-                  0 4px 8px rgba(0,0,0,0.3),
-                  inset -2px -2px 4px rgba(0,0,0,0.2),
-                  inset 2px 2px 4px rgba(255,255,255,0.3);
-                border: 2px solid white;
-              "></div>
-              <div style="
-                position: absolute;
-                top: 3px;
-                left: 50%;
-                transform: translateX(-50%) rotate(-45deg);
-                width: 16px;
-                height: 16px;
-                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
-                border-radius: 50%;
-                z-index: 2;
-              "></div>
-              <div style="
-                position: absolute;
-                bottom: -5px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 8px;
-                height: 8px;
-                background: rgba(0,0,0,0.3);
-                border-radius: 50%;
-                filter: blur(2px);
-              "></div>
-            </div>
-          `,
-          className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
-        })
-      }).addTo(map);
-
-      var popupContent = `
-        <div style="min-width:250px;">
-          <h4>${report.title}</h4>
-          <p><strong>Status:</strong> <span style="color:${color};font-weight:bold;">${report.status}</span></p>
-          <p><strong>Address:</strong> ${report.address || 'N/A'}</p>
-          <p><strong>Reporter:</strong> ${report.reporter || 'Anonymous'}</p>
-          ${report.image ? `<img src="${report.image}" width="200px" style="margin-top:5px;border-radius:6px;">` : ''}
-        </div>`;
-      marker.bindPopup(popupContent);
-      reportMarkers[report.id] = marker;
-    });
-    
+    // Add markers only for reports with valid coordinates
     {% for report in reports %}
     {% if report.latitude and report.longitude %}
-    var color = "{{ report.status }}"==="Resolved"?"#4caf50":"{{ report.status }}"==="In Progress"?"#2196f3":"#ff9800";
-    var marker = L.marker([{{ report.latitude }}, {{ report.longitude }}], {
-      icon: L.divIcon({
-        html: `
-          <div class="water-marker-3d" style="
-            position: relative;
-            width: 30px;
-            height: 40px;
-            transform: translateX(-15px) translateY(-40px);
-          ">
-            <div style="
-              position: absolute;
-              top: 0;
-              left: 50%;
-              width: 30px;
-              height: 30px;
-              background: linear-gradient(135deg, ${color} 0%, ${color}dd 50%, ${color}aa 100%);
-              border-radius: 50% 50% 50% 0;
-              transform: translateX(-50%) rotate(-45deg);
-              box-shadow: 
-                0 4px 8px rgba(0,0,0,0.3),
-                inset -2px -2px 4px rgba(0,0,0,0.2),
-                inset 2px 2px 4px rgba(255,255,255,0.3);
-              border: 2px solid white;
-            "></div>
-            <div style="
-              position: absolute;
-              top: 3px;
-              left: 50%;
-              transform: translateX(-50%) rotate(-45deg);
-              width: 16px;
-              height: 16px;
-              background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
-              border-radius: 50%;
-              z-index: 2;
-            "></div>
-            <div style="
-              position: absolute;
-              bottom: -5px;
-              left: 50%;
-              transform: translateX(-50%);
-              width: 8px;
-              height: 8px;
-              background: rgba(0,0,0,0.3);
-              border-radius: 50%;
-              filter: blur(2px);
-            "></div>
-          </div>
-        `,
-        className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
-      })
-    }).addTo(map);
+    try {
+      var color = "{{ report.status }}"==="Resolved"?"#4caf50":"{{ report.status }}"==="In Progress"?"#2196f3":"#ff9800";
+      var lat = parseFloat("{{ report.latitude }}");
+      var lng = parseFloat("{{ report.longitude }}");
+      
+      if (!isNaN(lat) && !isNaN(lng)) {
+        var marker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            html: `
+              <div class="water-marker-3d" style="
+                position: relative;
+                width: 30px;
+                height: 40px;
+                transform: translateX(-15px) translateY(-40px);
+              ">
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 50%;
+                  width: 30px;
+                  height: 30px;
+                  background: linear-gradient(135deg, ${color} 0%, ${color}dd 50%, ${color}aa 100%);
+                  border-radius: 50% 50% 50% 0;
+                  transform: translateX(-50%) rotate(-45deg);
+                  box-shadow: 
+                    0 4px 8px rgba(0,0,0,0.3),
+                    inset -2px -2px 4px rgba(0,0,0,0.2),
+                    inset 2px 2px 4px rgba(255,255,255,0.3);
+                  border: 2px solid white;
+                "></div>
+                <div style="
+                  position: absolute;
+                  top: 3px;
+                  left: 50%;
+                  transform: translateX(-50%) rotate(-45deg);
+                  width: 16px;
+                  height: 16px;
+                  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
+                  border-radius: 50%;
+                  z-index: 2;
+                "></div>
+                <div style="
+                  position: absolute;
+                  bottom: -5px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  width: 8px;
+                  height: 8px;
+                  background: rgba(0,0,0,0.3);
+                  border-radius: 50%;
+                  filter: blur(2px);
+                "></div>
+              </div>
+            `,
+            className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
+          })
+        }).addTo(map);
 
-    var popupContent = `
-      <div style="min-width:250px;">
-        <h4>{{ report.title }}</h4>
-        <p><strong>Status:</strong> <span style="color:${color};font-weight:bold;">{{ report.status }}</span></p>
-        <p><strong>Address:</strong> {% if report.address %}{{ report.address }}{% else %}N/A{% endif %}</p>
-        <p><strong>Reporter:</strong> {% if report.reporter %}{{ report.reporter.username }}{% else %}Anonymous{% endif %}</p>
-        {% if report.image %}
-          <img src="{{ report.image.url }}" width="200px" style="margin-top:5px;border-radius:6px;">
-        {% endif %}
-      </div>`;
-    marker.bindPopup(popupContent);
-    reportMarkers[{{ report.id }}] = marker;
+        var popupContent = `
+          <div style="min-width:250px;">
+            <h4>{{ report.title }}</h4>
+            <p><strong>Status:</strong> <span style="color:${color};font-weight:bold;">{{ report.status }}</span></p>
+            <p><strong>Location:</strong> {% if report.location %}{{ report.location }}{% else %}N/A{% endif %}</p>
+            <p><strong>Reporter:</strong> {% if report.reporter %}{{ report.reporter.username }}{% else %}Anonymous{% endif %}</p>
+            <p><strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
+            <p><strong>Date:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
+            {% if report.image %}
+              <img src="{{ report.image.url }}" width="200px" style="margin-top:5px;border-radius:6px;">
+            {% endif %}
+          </div>`;
+        marker.bindPopup(popupContent);
+        reportMarkers[{{ report.id }}] = marker;
+        console.log('Added marker for report {{ report.id }} at', lat, lng);
+      } else {
+        console.warn('Invalid coordinates for report {{ report.id }}:', "{{ report.latitude }}", "{{ report.longitude }}");
+      }
+    } catch (error) {
+      console.error('Error adding marker for report {{ report.id }}:', error);
+    }
     {% endif %}
     {% endfor %}
+    
+    // Log total markers added
+    console.log('Total markers added:', Object.keys(reportMarkers).length);
 
     function focusMarker(id){
       if(reportMarkers[id]){
@@ -1342,10 +1244,53 @@ footer {
         const marker = reportMarkers[reportId];
         
         marker.setIcon(L.divIcon({
-          html: `<div style="background:${newColor};width:24px;height:24px;border-radius:50%;border:3px solid white;"></div>`,
-          className: 'water-marker',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
+          html: `
+            <div class="water-marker-3d" style="
+              position: relative;
+              width: 30px;
+              height: 40px;
+              transform: translateX(-15px) translateY(-40px);
+            ">
+              <div style="
+                position: absolute;
+                top: 0;
+                left: 50%;
+                width: 30px;
+                height: 30px;
+                background: linear-gradient(135deg, ${newColor} 0%, ${newColor}dd 50%, ${newColor}aa 100%);
+                border-radius: 50% 50% 50% 0;
+                transform: translateX(-50%) rotate(-45deg);
+                box-shadow: 
+                  0 4px 8px rgba(0,0,0,0.3),
+                  inset -2px -2px 4px rgba(0,0,0,0.2),
+                  inset 2px 2px 4px rgba(255,255,255,0.3);
+                border: 2px solid white;
+              "></div>
+              <div style="
+                position: absolute;
+                top: 3px;
+                left: 50%;
+                transform: translateX(-50%) rotate(-45deg);
+                width: 16px;
+                height: 16px;
+                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
+                border-radius: 50%;
+                z-index: 2;
+              "></div>
+              <div style="
+                position: absolute;
+                bottom: -5px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 8px;
+                height: 8px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 50%;
+                filter: blur(2px);
+              "></div>
+            </div>
+          `,
+          className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
         }));
       }
     }
