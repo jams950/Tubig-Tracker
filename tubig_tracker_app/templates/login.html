@@ -26,7 +26,7 @@
 
         body {
             font-family: "Segoe UI", "Inter", sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #b3e5fc 50%, #bbdefb 100%);
+            background: url('{% static "images/loginback.png" %}') center/cover no-repeat;
             background-attachment: fixed;
             min-height: 100vh;
             display: flex;
@@ -35,6 +35,33 @@
             padding: 20px;
             position: relative;
             overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background-attachment: scroll;
+                background-size: cover;
+                background-position: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                background-size: cover;
+                background-position: center top;
+            }
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(13, 71, 161, 0.7) 0%, rgba(21, 101, 192, 0.6) 50%, rgba(25, 118, 210, 0.5) 100%);
+            backdrop-filter: blur(5px);
+            z-index: -1;
         }
 
         /* Animated background elements */
@@ -67,6 +94,7 @@
             width: 100%;
             max-width: 1200px;
             perspective: 1000px;
+            margin: 0 auto;
         }
 
         /* MAIN SPLIT CONTAINER */
@@ -75,15 +103,23 @@
             grid-template-columns: 1.2fr 0.8fr;
             gap: 0;
             border-radius: var(--radius);
-            box-shadow: var(--shadow-hover);
+            box-shadow: 0 30px 80px rgba(13, 71, 161, 0.4), 0 15px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            background: var(--card-bg);
+            background: transparent;
             min-height: 700px;
+            animation: float 6s ease-in-out infinite;
+            transform: translateY(0);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         /* LEFT SIDE - BACKGROUND IMAGE WITH SUBTLE OVERLAY */
         .auth-visual {
-            background: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -172,7 +208,7 @@
         }
 
         .visual-title {
-            font-size: 40px;
+            font-size: 60px;
             font-weight: 900;
             margin-bottom: 20px;
             line-height: 1.2;
@@ -181,16 +217,17 @@
         }
 
         .visual-subtitle {
-            font-size: 15px;
+            font-size: 18px;
             opacity: 0.95;
             line-height: 1.8;
             max-width: 380px;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
+            font-weight: 600;
         }
 
         .visual-description {
-            font-size: 13px;
+            font-size: 20px;
             opacity: 0.85;
             line-height: 1.7;
             max-width: 380px;
@@ -199,6 +236,7 @@
             padding: 20px;
             border-radius: 12px;
             border-left: 4px solid rgba(255, 255, 255, 0.4);
+            font-weight: 600;
         }
 
         /* RIGHT SIDE - FORM */
@@ -209,7 +247,8 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #f5f9fc 0%, #e8f4f9 100%);
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(15px);
         }
 
         .form-header {
@@ -232,8 +271,8 @@
         }
 
         .logo {
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -256,7 +295,7 @@
         .form-subtitle {
             font-size: 13px;
             color: var(--water-blue);
-            font-weight: 600;
+            font-weight: 900;
             letter-spacing: 0.5px;
         }
 
@@ -266,12 +305,22 @@
             position: relative;
         }
 
+        .field-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--water-dark);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
         .form-control {
             width: 100%;
             padding: 16px 18px;
             border: 2px solid #c5daf1;
             border-radius: 12px;
             font-size: 16px;
+            font-weight: 700;
             transition: var(--transition);
             background: white;
             font-family: inherit;
@@ -286,33 +335,13 @@
             box-shadow: 0 0 0 4px rgba(66, 165, 245, 0.15);
         }
 
-        /* FLOATING LABEL */
-        .floating-label {
-            position: absolute;
-            top: 18px;
-            left: 18px;
-            font-size: 16px;
-            color: #7fa3c3;
-            pointer-events: none;
-            transition: var(--transition);
-            background: white;
-            padding: 0 4px;
-            font-weight: 500;
-        }
 
-        .form-control:focus ~ .floating-label,
-        .form-control:not(:placeholder-shown) ~ .floating-label {
-            top: -12px;
-            font-size: 13px;
-            color: var(--water-blue);
-            font-weight: 700;
-            background: white;
-        }
 
         .password-toggle {
             position: absolute;
             right: 16px;
-            top: 18px;
+            top: 50%;
+            transform: translateY(-50%);
             background: none;
             border: none;
             color: var(--water-light);
@@ -376,7 +405,7 @@
             margin: 22px 0;
             color: #a0c4e0;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 900;
             letter-spacing: 0.5px;
         }
 
@@ -424,7 +453,7 @@
         .form-row a {
             color: var(--water-blue);
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 800;
             transition: var(--transition);
         }
 
@@ -440,7 +469,7 @@
             cursor: pointer;
             color: #5a7d95;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 800;
         }
 
         .checkbox-label input {
@@ -466,67 +495,97 @@
         }
 
         /* RESPONSIVE */
+        @media (max-width: 1400px) {
+            .container { max-width: 1100px; padding: 0 20px; }
+            .auth-container { min-height: 650px; }
+            .visual-title { font-size: 52px; }
+            .visual-subtitle { font-size: 17px; }
+            .visual-description { font-size: 19px; }
+        }
+        
+        @media (max-width: 1200px) {
+            .container { max-width: 950px; padding: 0 15px; }
+            .auth-container { min-height: 600px; }
+            .visual-title { font-size: 46px; }
+            .visual-subtitle { font-size: 16px; }
+            .visual-description { font-size: 17px; }
+            .auth-visual { padding: 50px 35px; }
+            .auth-form-container { padding: 50px 45px; }
+        }
+        
+        @media (max-width: 992px) {
+            .container { max-width: 100%; padding: 0 10px; }
+            .auth-container { grid-template-columns: 1fr 1fr; min-height: 550px; }
+            .auth-visual { padding: 40px 25px; }
+            .auth-form-container { padding: 40px 30px; }
+            .visual-title { font-size: 36px; }
+            .visual-subtitle { font-size: 14px; }
+            .visual-description { font-size: 15px; }
+            .logo { width: 100px; height: 100px; }
+            .form-title { font-size: 22px; }
+            .form-control { padding: 14px 16px; font-size: 15px; }
+            .btn { padding: 14px; font-size: 15px; }
+        }
+
         @media (max-width: 768px) {
-            .auth-container {
-                grid-template-columns: 1fr;
-                min-height: auto;
-            }
-
-            .auth-visual {
-                padding: 40px 30px;
-                min-height: 350px;
-                justify-content: flex-start;
-                padding-top: 80px;
-            }
-
-            .back-button {
-                top: 15px;
-                left: 15px;
-                width: 45px;
-                height: 45px;
-                font-size: 18px;
-            }
-
-            .auth-visual::before {
-                background: linear-gradient(135deg, rgba(13, 71, 161, 0.15) 0%, rgba(21, 101, 192, 0.1) 100%);
-            }
-
-            .visual-icon {
-                font-size: 60px;
-            }
-
-            .visual-title {
-                font-size: 32px;
-            }
-
-            .visual-subtitle {
-                font-size: 14px;
-            }
-
-            .visual-description {
-                font-size: 12px;
-            }
-
-            .auth-form-container {
-                padding: 40px 30px;
-            }
-
-            .form-header-logo {
-                gap: 10px;
-            }
-
-            .logo {
-                width: 100px;
-                height: 100px;
-            }
-
-            .form-title {
-                font-size: 22px;
-            }
-
-            .auth-form-content {
-                padding: 0 30px;
-            }
+            body { padding: 8px; }
+            .container { padding: 0 5px; }
+            .auth-container { grid-template-columns: 1fr; min-height: auto; border-radius: 12px; }
+            .auth-visual { padding: 25px 15px; min-height: 200px; order: 1; }
+            .auth-form-container { padding: 25px 15px; order: 2; }
+            .back-button { top: 10px; left: 10px; width: 35px; height: 35px; font-size: 14px; }
+            .visual-icon { width: 70px; height: 70px; margin-bottom: 15px; }
+            .visual-title { font-size: 22px; }
+            .visual-subtitle { font-size: 12px; }
+            .visual-description { font-size: 11px; padding: 10px; }
+            .visual-content { padding: 20px 10px; }
+            .form-header-logo { gap: 8px; }
+            .logo { width: 60px; height: 60px; }
+            .form-title { font-size: 16px; }
+            .form-subtitle { font-size: 9px; }
+            .auth-form-content { padding: 0; }
+            .form-control { padding: 12px 14px; font-size: 13px; }
+            .btn { padding: 12px; font-size: 13px; }
+            .social-btn { width: 35px; height: 35px; font-size: 14px; }
+            .field-label { font-size: 11px; }
+            .divider { font-size: 10px; margin: 12px 0; }
+            .form-row { font-size: 11px; flex-direction: column; gap: 8px; align-items: flex-start; }
+        }
+        
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .auth-container { border-radius: 8px; }
+            .auth-visual { padding: 20px 10px; min-height: 180px; }
+            .auth-form-container { padding: 20px 10px; }
+            .visual-content { padding: 15px 8px; }
+            .visual-icon { width: 50px; height: 50px; margin-bottom: 10px; }
+            .visual-title { font-size: 18px; }
+            .visual-subtitle { font-size: 10px; }
+            .visual-description { font-size: 9px; padding: 8px; }
+            .logo { width: 45px; height: 45px; }
+            .form-title { font-size: 14px; }
+            .form-subtitle { font-size: 8px; }
+            .field-label { font-size: 10px; }
+            .form-control { padding: 10px 12px; font-size: 12px; }
+            .btn { padding: 10px; font-size: 12px; }
+            .social-login { gap: 8px; }
+            .social-btn { width: 30px; height: 30px; font-size: 12px; }
+            .divider { font-size: 9px; margin: 10px 0; }
+            .form-row { font-size: 10px; }
+            .password-toggle { right: 12px; font-size: 14px; }
+        }
+        
+        @media (max-width: 360px) {
+            .auth-visual { padding: 15px 8px; min-height: 150px; }
+            .auth-form-container { padding: 15px 8px; }
+            .visual-content { padding: 12px 6px; }
+            .visual-title { font-size: 16px; }
+            .form-title { font-size: 12px; }
+            .logo { width: 35px; height: 35px; }
+            .visual-icon { width: 40px; height: 40px; }
+            .form-control { padding: 8px 10px; font-size: 11px; }
+            .btn { padding: 8px; font-size: 11px; }
+            .social-btn { width: 25px; height: 25px; font-size: 10px; }
         }
     </style>
 </head>
@@ -576,30 +635,34 @@
                     </div>
                 </div>
 
+                <!-- Display Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}" style="padding: 12px; margin-bottom: 20px; border-radius: 8px; {% if message.tags == 'error' %}background: #ffebee; color: #c62828; border: 1px solid #ef5350;{% else %}background: #e8f5e9; color: #2e7d32; border: 1px solid #66bb6a;{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 <!-- FIXED LOGIN FORM -->
                 <form method="POST" action="{% url 'login' %}">
                     {% csrf_token %}
                     
                     <div class="form-group">
-        <select name="role" class="form-control" required>
-        <option value="">Select role</option>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-     </select>
-                <label class="floating-label">Role</label>
-                </div>
-
-                    <div class="form-group">
-                        <input type="text" name="username" class="form-control" placeholder=" " required>
-                        <label class="floating-label">Email or Username</label>
+                        <label class="field-label">Email or Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter your email or username" required>
                     </div>
 
-                    <div class="form-group" style="position: relative;">
-                        <input type="password" name="password" id="loginPassword" class="form-control" placeholder=" " required>
-                        <label class="floating-label">Password</label>
-                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
-                            <i class="fas fa-eye"></i>
-                        </button>
+
+
+                    <div class="form-group">
+                        <label class="field-label">Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="form-row">
@@ -651,38 +714,42 @@
                     {% csrf_token %}
 
                     <div class="form-group">
-                        <input type="text" name="username" class="form-control" placeholder=" " required>
-                        <label class="floating-label">Full Name</label>
+                        <label class="field-label">Full Name</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter your full name" required>
                     </div>
 
                     <div class="form-group">
-                        <input type="email" name="email" class="form-control" placeholder=" " required>
-                        <label class="floating-label">Email Address</label>
+                        <label class="field-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="Enter your email address" required>
                     </div>
 
                     <div class="form-group">
+                        <label class="field-label">Role</label>
                         <select name="role" class="form-control" required>
-                            <option value="" disabled selected>Select Your Role</option>
-                            <option value="student">Admin</option>
-                            <option value="teacher">User</option>
-                            </select>
-                        <label class="floating-label">Role</label>
+                            <option value="" disabled selected>Select your role</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                        </select>
                     </div>
 
-                    <div class="form-group" style="position: relative;">
-                        <input type="password" name="password" id="registerPassword" class="form-control" placeholder=" " required>
-                        <label class="floating-label">Password</label>
-                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                    <div class="form-group">
+                        <label class="field-label">Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="password" id="registerPassword" class="form-control" placeholder="Create a password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="form-group" style="position: relative;">
-                        <input type="password" name="confirm_password" id="confirmPassword" class="form-control" placeholder=" " required>
-                        <label class="floating-label">Confirm Password</label>
-                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                    <div class="form-group">
+                        <label class="field-label">Confirm Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="confirm_password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="form-row">
@@ -691,7 +758,7 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-register>
+                    <button type="submit" class="btn btn-login">
                         <i class="fas fa-user-check"></i> Register
                     </button>
 

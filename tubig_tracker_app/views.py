@@ -21,26 +21,16 @@ logger = logging.getLogger(__name__)
 from .forms import UserRegistrationForm, ComplaintForm
 
 # AUTHENTICATION & HOME
+def intro(request):
+    return render(request, 'intro.html')
+
 def home(request):
     return render(request, 'Home.html')
 
 def home_view(request):
     return render(request, 'login.html')
 
-def register_view(request): 
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
-            messages.success(request, 'Account created successfully. Please login now.')
-            return redirect('login')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = UserRegistrationForm()
-    return render(request, 'login.html', {'form': form})
+
 
 def _obsolete_login_view(request):
     """Deprecated duplicate login view kept for reference. Real implementation is below."""
@@ -64,12 +54,20 @@ def logout_view(request):
 # DASHBOARDS
 @login_required
 def dashboard_view(request):
+    print(f"DEBUG: Dashboard view accessed")
+    print(f"DEBUG: User authenticated: {request.user.is_authenticated}")
+    print(f"DEBUG: User: {request.user}")
+    print(f"DEBUG: User ID: {request.user.id if request.user.is_authenticated else 'None'}")
+    print(f"DEBUG: Session key: {request.session.session_key}")
+    
     user = request.user
     if getattr(user, 'role', None) == 'admin':
+        print("DEBUG: User is admin, redirecting to admin dashboard")
         return redirect('admin_dashboard')
 
     # Use Report instead of Complaint
     reports = Report.objects.filter(reporter=user).order_by('-created_at')
+    print(f"DEBUG: Found {reports.count()} reports for user")
 
     context = {
         'user': user,
@@ -80,6 +78,7 @@ def dashboard_view(request):
         'recent_updates': reports[:5],  # optionally show recent reports
     }
 
+    print("DEBUG: Rendering dashboard template")
     return render(request, 'user/dashboard.html', context)
 
 # ------------------------------
@@ -579,101 +578,78 @@ def add_report_view(request):
     return render(request, 'user/add_complaint.html')
 
 def login_view(request):
-    """Login view that accepts either username or email and redirects appropriately.
-
-    Template uses a single `username` field that can contain username or email.
-    This function first tries to authenticate using the raw value as username;
-    if that fails it attempts to resolve an account by email and authenticate
-    using that user's username.
-    """
     if request.method == 'POST':
-        username_or_email = (request.POST.get('username') or '').strip()
-        password = request.POST.get('password')
-        role = request.POST.get('role')
-
-        user = None
-
-        if username_or_email and password:
-            # Try authenticating directly with the provided value (username)
-            user = authenticate(request, username=username_or_email, password=password)
-            logger.debug("Login attempt with identifier=%s (as username)", username_or_email)
-
-            # If not found, try looking up by email and authenticate using that username
-            if user is None:
-                try:
-                    user_obj = User.objects.get(email__iexact=username_or_email)
-                    logger.debug("Found user by email: %s -> username=%s", user_obj.email, user_obj.username)
-                    user = authenticate(request, username=user_obj.username, password=password)
-                except User.DoesNotExist:
-                    user = None
-                except Exception as e:
-                    logger.exception("Error looking up user by email: %s", e)
-
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        
+        print(f"Login attempt: '{username}' / '{password}'")
+        
+        if not username or not password:
+            messages.error(request, 'Please enter username and password')
+            return render(request, 'login.html')
+        
+        user = authenticate(request, username=username, password=password)
+        print(f"Auth result: {user}")
+        
         if user is not None:
-            logger.debug("Authentication successful for username=%s", user.username)
             login(request, user)
-            # If admin role selected, ensure user has staff/admin privileges
-            if role == 'admin' and (user.is_staff or getattr(user, 'role', None) == 'admin'):
-                return redirect('admin_dashboard')
-            elif role == 'admin':
-                messages.error(request, 'You are not authorized as admin')
-                return redirect('login')
-
-            # Default user redirect
             return redirect('dashboard')
         else:
-            logger.debug("Authentication failed for identifier=%s", username_or_email)
-            # Check if account exists but inactive or wrong password
-            try:
-                if User.objects.filter(username__iexact=username_or_email).exists() or User.objects.filter(email__iexact=username_or_email).exists():
-                    logger.debug("Account exists for identifier=%s but authentication failed (likely wrong password or inactive)", username_or_email)
-            except Exception:
-                logger.exception("Error checking user existence for identifier=%s", username_or_email)
-            messages.error(request, 'Invalid username/email or password')
-
+            messages.error(request, 'Invalid username or password')
+    
     return render(request, 'login.html')
 
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        role = request.POST.get('role')  # Get role but handle separately
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        role = request.POST.get('role', 'user')
+        
+        print(f"DEBUG: Registration attempt - Username: {username}, Email: {email}, Role: {role}")
+        
+        # Validate required fields
+        if not username or not email or not password:
+            messages.error(request, 'All fields are required')
+            return render(request, 'login.html')
         
         # Check if passwords match
         if password != confirm_password:
             messages.error(request, 'Passwords do not match')
-            return redirect('register')
+            return render(request, 'login.html')
         
         # Check if user already exists
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists')
-            return redirect('register')
+            return render(request, 'login.html')
         
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return redirect('register')
+            return render(request, 'login.html')
         
         try:
-            # Create user without role parameter
+            # Create user with role
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password
             )
             
-            # Handle role separately
+            # Set role and admin status
             if role == 'admin':
+                user.role = 'admin'
                 user.is_staff = True
-                user.save()
-                messages.success(request, 'Admin account created successfully! Please login.')
             else:
-                messages.success(request, 'Account created successfully! Please login.')
+                user.role = 'user'
             
+            user.save()
+            print(f"DEBUG: User created successfully: {user.username} with role: {user.role}")
+            messages.success(request, 'Account created successfully! Please login.')
             return redirect('login')
             
         except Exception as e:
+            print(f"DEBUG: Registration error: {str(e)}")
             messages.error(request, f'Error creating account: {str(e)}')
     
     return render(request, 'login.html')

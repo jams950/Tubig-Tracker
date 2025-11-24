@@ -8,6 +8,217 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/admin/admin_settings.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --ocean-deep: #0a2463;
+            --ocean-blue: #1e88e5;
+            --water-light: #42a5f5;
+            --wave-cyan: #00bcd4;
+            --foam-white: #e3f2fd;
+            --text-dark: #1a237e;
+            --text-light: #546e7a;
+            --success: #00897b;
+            --warning: #fb8c00;
+            --danger: #e53935;
+            --shadow: rgba(10, 36, 99, 0.1);
+            --shadow-hover: rgba(10, 36, 99, 0.2);
+            --radius: 16px;
+            --radius-sm: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+            padding: 30px;
+            border-radius: var(--radius);
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .topbar h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--ocean-blue), var(--water-light));
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 136, 229, 0.4);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: 0 8px 25px var(--shadow);
+            border: 1px solid #e0e0e0;
+        }
+
+        .setting-item {
+            margin-bottom: 25px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+
+        .setting-item input,
+        .setting-item textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-sm);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .setting-item input:focus,
+        .setting-item textarea:focus {
+            outline: none;
+            border-color: var(--ocean-blue);
+            box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+        }
+
+        .setting-item textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .topbar {
+                padding: 25px 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .topbar h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 30px 25px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+
+            .topbar {
+                padding: 20px 15px;
+            }
+
+            .topbar h1 {
+                font-size: 1.6rem;
+            }
+
+            .card {
+                padding: 25px 20px;
+            }
+
+            .setting-item input,
+            .setting-item textarea {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .topbar h1 {
+                font-size: 1.4rem;
+            }
+
+            .card {
+                padding: 20px 15px;
+            }
+
+            .setting-item {
+                margin-bottom: 20px;
+            }
+
+            .setting-item label {
+                font-size: 0.9rem;
+            }
+
+            .setting-item input,
+            .setting-item textarea {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
 
 </head>
 <body>

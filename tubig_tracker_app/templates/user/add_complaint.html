@@ -89,6 +89,24 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   background-color: rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
 .sidebar-header img.logo {
@@ -96,6 +114,13 @@ body {
   display: block;
   margin: 0 auto 10px auto;
   animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+  transition: all 0.3s ease;
+}
+
+.sidebar-header img.logo:hover {
+  transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
 }
 
 @keyframes float {
@@ -104,9 +129,31 @@ body {
 }
 
 .sidebar h2 {
-  font-size: 2rem;
+  font-size: 2.4rem;
   margin: 0;
   font-weight: 700;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.1);
+  animation: glow 2s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.5),
+      0 0 20px rgba(255, 255, 255, 0.3),
+      0 0 30px rgba(255, 255, 255, 0.1);
+  }
+  to {
+    text-shadow: 
+      0 0 15px rgba(255, 255, 255, 0.8),
+      0 0 25px rgba(255, 255, 255, 0.5),
+      0 0 35px rgba(255, 255, 255, 0.3);
+  }
 }
 
 .nav {
@@ -127,8 +174,8 @@ body {
   border-radius: var(--radius-sm);
   margin: 8px 0;
   transition: var(--transition);
-  font-weight: 600;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.8rem;
   border: 1px solid transparent;
 }
 
@@ -150,7 +197,7 @@ body {
 .nav a i {
   width: 35px;
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.2rem;
 }
 
 /* MAIN CONTENT */
@@ -573,6 +620,14 @@ footer {
     font-size: 1.3rem;
   }
   
+  .nav a i {
+    font-size: 1.8rem;
+  }
+  
+  .sidebar h2 {
+    font-size: 2rem;
+  }
+  
   .page-header h1 {
     font-size: 2.2rem;
   }
@@ -597,6 +652,10 @@ footer {
     font-size: 1.2rem;
   }
   
+  .nav a i {
+    font-size: 1.5rem;
+  }
+  
   .sidebar-header img.logo {
     height: 120px;
   }
@@ -604,29 +663,31 @@ footer {
   .sidebar h2 {
     font-size: 1.8rem;
   }
+  
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  form {
+    padding: 25px;
+  }
+  
+  #map {
+    height: 400px;
+  }
 }
 
 @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    height: auto;
+  }
+  
   .sidebar {
-    transform: translateX(-100%);
-    width: 320px;
-    position: fixed;
-  }
-  
-  .sidebar.active {
-    transform: translateX(0);
-  }
-  
-  .main-content {
-    margin-left: 0;
-    padding: 20px;
     width: 100%;
-  }
-  
-  .mobile-menu-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: auto;
+    position: relative;
+    transform: none;
   }
   
   .sidebar-header {
@@ -642,18 +703,27 @@ footer {
   }
   
   .nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
     padding: 20px;
   }
   
   .nav a {
+    justify-content: center;
+    text-align: center;
     padding: 20px 15px;
-    font-size: 1.1rem;
-    gap: 15px;
+    font-size: 1rem;
+    gap: 10px;
   }
   
   .nav a i {
-    font-size: 1.5rem;
-    width: 28px;
+    font-size: 1.2rem;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
   }
   
   .page-header {
@@ -662,6 +732,8 @@ footer {
   
   .page-header h1 {
     font-size: 1.8rem;
+    flex-direction: column;
+    gap: 10px;
   }
   
   .page-header h1 i {
@@ -684,16 +756,24 @@ footer {
   }
   
   #map {
-    height: 400px;
+    height: 350px;
   }
   
   .form-actions button {
     width: 100%;
     justify-content: center;
   }
+  
+  .mobile-menu-toggle {
+    display: none;
+  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
+  .nav {
+    grid-template-columns: 1fr;
+  }
+  
   .main-content {
     padding: 15px;
   }
@@ -704,9 +784,6 @@ footer {
   
   .page-header h1 {
     font-size: 1.5rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
   }
   
   form {
@@ -734,7 +811,7 @@ footer {
   }
   
   #map {
-    height: 350px;
+    height: 300px;
   }
   
   .map-instructions {
@@ -765,7 +842,7 @@ footer {
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 480px) {
   .page-header h1 {
     font-size: 1.3rem;
   }
@@ -781,7 +858,7 @@ footer {
   }
   
   #map {
-    height: 300px;
+    height: 250px;
   }
   
   .form-actions button {

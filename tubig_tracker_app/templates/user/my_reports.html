@@ -94,18 +94,71 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   background-color: rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
 .sidebar-header img.logo {
   height: 150px;
   display: block;
   margin: 0 auto 10px auto;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+  transition: all 0.3s ease;
+}
+
+.sidebar-header img.logo:hover {
+  transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
 .sidebar h2 {
-  font-size: 2rem;
+  font-size: 2.4rem;
   margin: 0;
   font-weight: 700;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.1);
+  animation: glow 2s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.5),
+      0 0 20px rgba(255, 255, 255, 0.3),
+      0 0 30px rgba(255, 255, 255, 0.1);
+  }
+  to {
+    text-shadow: 
+      0 0 15px rgba(255, 255, 255, 0.8),
+      0 0 25px rgba(255, 255, 255, 0.5),
+      0 0 35px rgba(255, 255, 255, 0.3);
+  }
 }
 
 .nav {
@@ -126,8 +179,8 @@ body {
   border-radius: var(--radius-sm);
   margin: 8px 0;
   transition: var(--transition);
-  font-weight: 600;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.8rem;
   border: 1px solid transparent;
 }
 
@@ -149,7 +202,7 @@ body {
 .nav a i {
   width: 35px;
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.2rem;
 }
 
 /* MAIN CONTENT - ADJUSTED FOR LARGER SIDEBAR */
@@ -482,6 +535,14 @@ a[href*="maps"]:hover {
     font-size: 1.3rem;
   }
   
+  .nav a i {
+    font-size: 1.8rem;
+  }
+  
+  .sidebar h2 {
+    font-size: 2rem;
+  }
+  
   .container {
     padding: 30px;
   }
@@ -495,6 +556,23 @@ a[href*="maps"]:hover {
   .main-content {
     margin-left: 320px;
     padding: 25px;
+  }
+  
+  .nav a {
+    padding: 30px 20px;
+    font-size: 1.2rem;
+  }
+  
+  .nav a i {
+    font-size: 1.5rem;
+  }
+  
+  .sidebar-header img.logo {
+    height: 120px;
+  }
+  
+  .sidebar h2 {
+    font-size: 1.8rem;
   }
   
   h1 {
@@ -535,9 +613,13 @@ a[href*="maps"]:hover {
     height: 80px;
   }
   
+  .sidebar h2 {
+    font-size: 1.5rem;
+  }
+  
   .nav {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     padding: 20px;
   }
@@ -581,6 +663,13 @@ a[href*="maps"]:hover {
     min-width: 100px;
     padding: 10px 15px;
     font-size: 0.85rem;
+  }
+  
+  #reportModal .modal-content {
+    width: 95%;
+    max-height: 95vh;
+    padding: 25px 20px;
+    margin: 15px;
   }
 }
 
@@ -643,6 +732,14 @@ a[href*="maps"]:hover {
     font-size: 0.9rem;
   }
   
+  h1 {
+    font-size: 1.6rem;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem;
+  }
+  
   th, td {
     padding: 10px 6px;
     font-size: 0.8rem;
@@ -660,6 +757,12 @@ a[href*="maps"]:hover {
   
   #modal-body strong {
     min-width: auto;
+  }
+  
+  .btn {
+    min-width: 70px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
   }
 }
 

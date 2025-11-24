@@ -11,7 +11,282 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
+:root {
+  --ocean-deep: #0a2463;
+  --ocean-blue: #1e88e5;
+  --water-light: #42a5f5;
+  --wave-cyan: #00bcd4;
+  --foam-white: #e3f2fd;
+  --text-dark: #1a237e;
+  --text-light: #546e7a;
+  --success: #00897b;
+  --warning: #fb8c00;
+  --danger: #e53935;
+  --shadow: rgba(10, 36, 99, 0.1);
+  --shadow-hover: rgba(10, 36, 99, 0.2);
+  --radius: 16px;
+  --radius-sm: 8px;
+  --transition: all 0.3s ease;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.topbar {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  padding: 30px;
+  border-radius: var(--radius);
+  color: white;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px var(--shadow);
+}
+
+.topbar h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 30px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 25px var(--shadow);
+  transition: var(--transition);
+  border: 1px solid #e0e0e0;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px var(--shadow-hover);
+}
+
+.card h3 {
+  color: var(--text-dark);
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.card p {
+  color: var(--text-light);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.status {
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: inline-block;
+}
+
+.status-pending {
+  background: linear-gradient(135deg, #fb8c00, #ff6f00);
+}
+
+.status-in-progress {
+  background: linear-gradient(135deg, #1e88e5, #42a5f5);
+}
+
+.status-resolved {
+  background: linear-gradient(135deg, #00897b, #26a69a);
+}
+
+.card img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  margin: 15px 0;
+  box-shadow: 0 4px 15px var(--shadow);
+}
+
+.report-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.report-actions select {
+  padding: 10px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: var(--radius-sm);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  background: white;
+  transition: var(--transition);
+}
+
+.report-actions select:focus {
+  outline: none;
+  border-color: var(--ocean-blue);
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+}
+
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--water-light));
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(30, 136, 229, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #c62828);
+  color: white;
+  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(229, 57, 53, 0.4);
+}
+
+#map {
+  height: 500px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 25px var(--shadow);
+  margin-top: 30px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .topbar {
+    padding: 25px 20px;
+  }
+  
+  .topbar h1 {
+    font-size: 1.8rem;
+  }
+  
+  .card {
+    padding: 25px 20px;
+  }
+  
+  .card h3 {
+    font-size: 1.2rem;
+  }
+  
+  .report-actions {
+    flex-direction: column;
+  }
+  
+  .report-actions select,
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  #map {
+    height: 400px;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .topbar {
+    padding: 20px 15px;
+  }
+  
+  .topbar h1 {
+    font-size: 1.6rem;
+  }
+  
+  .card {
+    padding: 20px 15px;
+  }
+  
+  .card h3 {
+    font-size: 1.1rem;
+  }
+  
+  .card p {
+    font-size: 0.9rem;
+  }
+  
+  .status {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+  
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+  
+  #map {
+    height: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar h1 {
+    font-size: 1.4rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .card {
+    padding: 15px;
+  }
+  
+  .card h3 {
+    font-size: 1rem;
+  }
+  
+  .card p {
+    font-size: 0.85rem;
+  }
+}
 </style>
 </head>
 <body>

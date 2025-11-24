@@ -6,7 +6,8 @@ urlpatterns = [
     # ------------------------------
     # LANDING PAGE & AUTHENTICATION
     # ------------------------------
-    path('', views.home, name='home'),  # default root URL before login
+    path('', views.intro, name='intro'),  # intro animation page
+    path('home/', views.home, name='home'),  # main home page
     #path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
@@ -41,21 +42,21 @@ urlpatterns = [
     # ADMIN REPORT MANAGEMENT
     # ------------------------------
    path('update-report-status/<int:report_id>/', views.update_report_status, name='update_report_status_ajax'),
-    path('admin/report/delete/<int:report_id>/', views.delete_report_admin, name='delete_report_admin'),
+    path('manage/reports/delete/<int:report_id>/', views.delete_report_admin, name='delete_report_admin'),
 
     # ------------------------------
     # ADMIN ANNOUNCEMENT MANAGEMENT
     # ------------------------------
-    path('admin/announcements/', views.admin_manage_announcements, name='admin_manage_announcements'),
-    path('admin/announcements/create/', views.create_announcement_admin, name='create_announcement_admin'),
-    # path('admin/announcements/edit/<int:announcement_id>/', views.edit_announcement_admin, name='edit_announcement_admin'),
-    path('admin/announcements/delete/<int:announcement_id>/', views.delete_announcement_admin, name='delete_announcement_admin'),
+    path('manage/announcements/', views.admin_manage_announcements, name='admin_manage_announcements'),
+    path('manage/announcements/create/', views.create_announcement_admin, name='create_announcement_admin'),
+    # path('manage/announcements/edit/<int:announcement_id>/', views.edit_announcement_admin, name='edit_announcement_admin'),
+    path('manage/announcements/delete/<int:announcement_id>/', views.delete_announcement_admin, name='delete_announcement_admin'),
 
     # ------------------------------
     # ADMIN SETTINGS & PROFILE
     # ------------------------------
-    path('admin/settings/', views.admin_settings_view, name='admin_settings_view'),
-    path('admin/profile/', views.admin_profile_view, name='admin_profile_view'),
+    path('manage/settings/', views.admin_settings_view, name='admin_settings_view'),
+    path('manage/profile/', views.admin_profile_view, name='admin_profile_view'),
 
     # ------------------------------
     # USER FEATURES / PAGES
@@ -69,8 +70,8 @@ urlpatterns = [
     # ------------------------------
     # ADMIN USER MANAGEMENT
     # ------------------------------
-    path('admin/view-users/', views.view_users, name='view_users'),
-    path('admin/delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
+    path('manage/users/', views.view_users, name='view_users'),
+    path('manage/users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
     path('mark-bill-paid/<int:bill_id>/', views.mark_bill_paid, name='mark_bill_paid'),
     
 
@@ -85,7 +86,7 @@ urlpatterns = [
     # ------------------------------
     path('add-complaint/', views.add_complaint_view, name='add_complaint'),
     path('add_report/', views.add_report_view, name='add_report'),
-   path('admin/manage-reports/', views.admin_manage_reports, name='admin_manage_reports'),
+   path('manage/reports/', views.admin_manage_reports, name='admin_manage_reports'),
 
     #path('manage-reports/', views.manage_reports, name='manage_reports'),
     path('report/<int:id>/', views.view_report, name='view_report'),
