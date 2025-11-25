@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile | Tubig Tracker</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/user/profile.css' %}">
+  
+</head>
+<body>
+
+  <!-- SIDEBAR - FULL WIDTH -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo">
+            <i class="fas fa-tint"></i>
+          </div>
+          <div class="system-name">Tubig Tracker</div>
+        </div>
+        <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9rem;">Water Management System</p>
+      </div>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'add_complaint' %}"><i class="fas fa-exclamation-circle"></i> Report Issue</a>
+        <a href="{% url 'my_reports' %}"><i class="fas fa-clipboard-list"></i> My Reports</a>
+        <a href="{% url 'water_status' %}"><i class="fas fa-map-marker-alt"></i> Water Status</a>
+        <a href="{% url 'my_report_summary' %}"><i class="fas fa-chart-bar"></i> My Report Summary</a>
+        <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{% url 'profile' %}" class="active"><i class="fas fa-user"></i> Profile</a>
+        <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Settings</a>
+      </div>
+    </div>
+    <div class="logout-section">
+      <div class="user-info-sidebar">
+        <div class="user-avatar-sidebar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details-sidebar">
+          <h3>{{ user.username|default:"User" }}</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+      <div class="logout">
+        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="page-header">
+      <h1><i class="fas fa-user"></i> Profile</h1>
+      <p class="subtitle">Manage your account information and preferences</p>
+    </div>
+
+    <div class="profile-container">
+      <!-- Profile Sidebar -->
+      <div class="profile-sidebar">
+        <div class="profile-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="profile-name">{{ user.username|default:"User" }}</div>
+        <div class="profile-role">{{ user.role|default:"Resident" }}</div>
+        
+        <div class="profile-stats">
+          <div class="stat-item">
+            <div class="stat-number">{{ total_reports|default:"0" }}</div>
+            <div class="stat-label">Total Reports</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ resolved_reports|default:"0" }}</div>
+            <div class="stat-label">Resolved</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ active_reports|default:"0" }}</div>
+            <div class="stat-label">Active</div>
+          </div>
+        </div>
+
+        <button class="edit-btn">
+          <i class="fas fa-edit"></i> Edit Profile
+        </button>
+      </div>
+
+      <!-- Profile Main Content -->
+      <div class="profile-main">
+        <!-- Personal Information -->
+        <div class="info-section">
+          <h2 class="section-title">
+            <i class="fas fa-id-card"></i>
+            Personal Information
+          </h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-user"></i>
+                Username
+              </div>
+              <div class="info-value">{{ user.username|default:"Not set" }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-envelope"></i>
+                Email Address
+              </div>
+              <div class="info-value">{{ user.email|default:"Not set" }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-shield-alt"></i>
+                Role
+              </div>
+              <div class="info-value">{{ user.role|default:"Resident" }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-calendar-alt"></i>
+                Member Since
+              </div>
+              <div class="info-value">{{ user.date_joined|date:"M d, Y"|default:"Not available" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="info-section">
+          <h2 class="section-title">
+            <i class="fas fa-address-book"></i>
+            Contact Information
+          </h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-phone"></i>
+                Phone Number
+              </div>
+              <div class="info-value">{{ user.phone|default:"Not set" }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-map-marker-alt"></i>
+                Address
+              </div>
+              <div class="info-value">{{ user.address|default:"Not set" }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-city"></i>
+                Barangay
+              </div>
+              <div class="info-value">{{ user.barangay|default:"Not set" }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-home"></i>
+                Zone
+              </div>
+              <div class="info-value">{{ user.zone|default:"Not set" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="info-section">
+          <h2 class="section-title">
+            <i class="fas fa-history"></i>
+            Recent Activity
+          </h2>
+          <ul class="activity-list">
+            <li class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-file-alt"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-message">Submitted a new water issue report</div>
+                <div class="activity-time">2 hours ago</div>
+              </div>
+            </li>
+            <li class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-message">Report #{{ last_report_id|default:"001" }} was resolved</div>
+                <div class="activity-time">1 day ago</div>
+              </div>
+            </li>
+            <li class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-bell"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-message">Received water supply update notification</div>
+                <div class="activity-time">2 days ago</div>
+              </div>
+            </li>
+            <li class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-calendar"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-message">Viewed bailing schedule for this week</div>
+                <div class="activity-time">3 days ago</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add animation to profile elements
+      const profileElements = document.querySelectorAll('.profile-sidebar, .info-section');
+      profileElements.forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          element.style.transition = 'all 0.5s ease';
+          element.style.opacity = '1';
+          element.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+
+      // Edit profile button functionality
+      const editBtn = document.querySelector('.edit-btn');
+      if (editBtn) {
+        editBtn.addEventListener('click', function() {
+          alert('Edit profile functionality would open here. This would typically open a form to update user information.');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

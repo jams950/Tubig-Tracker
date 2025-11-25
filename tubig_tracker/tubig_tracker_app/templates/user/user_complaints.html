@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Details | Tubig Tracker</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/user/user_compliants.css' %}">
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div>
+      <h2>Tubig Tracker</h2>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}" class="{% if request.path == '/dashboard/' %}active{% endif %}">🏠 Dashboard</a>
+        <a href="{% url 'add_complaint' %}" class="{% if request.path == '/complaint/add/' %}active{% endif %}">💧 Report Issue</a>
+        <a href="{% url 'my_reports' %}" class="{% if request.path == '/my-reports/' %}active{% endif %}">📋 My Reports</a>
+        <a href="{% url 'bailing_schedule' %}" class="{% if request.path == '/bailing_schedule/' %}active{% endif %}">🗓️ Bailing Schedule</a>
+        <a href="{% url 'announcements' %}" class="{% if request.path == '/announcements/' %}active{% endif %}">📢 Announcements</a>
+        <a href="{% url 'water_status' %}" class="{% if request.path == '/water_status/' %}active{% endif %}">📍 Water Status</a>
+        <a href="{% url 'my_report_summary' %}" class="{% if request.path == '/my_report_summary/' %}active{% endif %}">📊 My Report Summary</a>
+        <a href="{% url 'notifications' %}" class="{% if request.path == '/notifications/' %}active{% endif %}">💬 Notifications</a>
+        <a href="{% url 'profile' %}" class="{% if request.path == '/profile/' %}active{% endif %}">👤 Profile</a>
+        <a href="{% url 'settings' %}" class="{% if request.path == '/settings/' %}active{% endif %}">⚙️ Settings</a>
+      </div>
+    </div>
+    <div class="logout">
+      <a href="{% url 'logout' %}">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <h1>Report Details</h1>
+
+    <div class="report-box">
+      <div class="report-item"><strong>Title:</strong> {{ complaint.title }}</div>
+      <div class="report-item"><strong>Description:</strong> {{ complaint.description }}</div>
+      <div class="report-item"><strong>Status:</strong> {{ complaint.status }}</div>
+      <div class="report-item"><strong>Date Submitted:</strong> {{ complaint.created_at|date:"M d, Y h:i A" }}</div>
+
+      {% if complaint.latitude and complaint.longitude %}
+      <div id="map"></div>
+      {% endif %}
+
+      {% if photos %}
+      <div class="photos">
+        {% for photo in photos %}
+          <img src="{{ photo.photo.url }}" alt="Report Photo">
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="action-buttons">
+        <a href="{% url 'edit_complaint' complaint.id %}" class="btn-edit">Edit</a>
+        <a href="{% url 'delete_complaint' complaint.id %}" class="btn-delete">Delete</a>
+        <a href="{% url 'my_reports' %}" class="btn-back">Back</a>
+      </div>
+    </div>
+
+    <footer>© 2025 Tubig Tracker | Report Details</footer>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    {% if complaint.latitude and complaint.longitude %}
+    // Initialize map centered in Biliran
+    var map = L.map('map').setView([11.6055, 124.6308], 12); // Biliran coords
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Add marker for complaint
+    L.marker([{{ complaint.latitude }}, {{ complaint.longitude }}])
+      .addTo(map)
+      .bindPopup("{{ complaint.title }}")
+      .openPopup();
+    {% endif %}
+  </script>
+</body>
+</html>

@@ -1,0 +1,1269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Complaint | Tubig Tracker</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/user/add_complaint.css' %}">
+
+  <style>
+  :root {
+  --primary: #1565c0;
+  --primary-dark: #0d47a1;
+  --primary-light: #e3f2fd;
+  --secondary: #4caf50;
+  --accent: #ff9800;
+  --danger: #e53935;
+  --danger-dark: #c62828;
+  --text: #333333;
+  --text-light: #666666;
+  --text-lighter: #888888;
+  --bg: #f8fbff;
+  --card-bg: #ffffff;
+  --border: #e0e0e0;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: all 0.3s ease;
+}
+
+[data-theme="dark"] {
+  --primary: #1e88e5;
+  --primary-dark: #1565c0;
+  --primary-light: #0d47a1;
+  --secondary: #66bb6a;
+  --accent: #ffb74d;
+  --danger: #ef5350;
+  --danger-dark: #e53935;
+  --text: #f5f5f5;
+  --text-light: #e0e0e0;
+  --text-lighter: #bdbdbd;
+  --bg: #121212;
+  --card-bg: #1e1e1e;
+  --border: #333333;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  transition: var(--transition);
+}
+
+/* ENHANCED SIDEBAR - LARGER */
+.sidebar {
+  width: 450px;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 0;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 45px 35px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.sidebar-header img.logo {
+  height: 150px;
+  display: block;
+  margin: 0 auto 10px auto;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+  transition: all 0.3s ease;
+}
+
+.sidebar-header img.logo:hover {
+  transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.sidebar h2 {
+  font-size: 2.4rem;
+  margin: 0;
+  font-weight: 700;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.1);
+  animation: glow 2s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.5),
+      0 0 20px rgba(255, 255, 255, 0.3),
+      0 0 30px rgba(255, 255, 255, 0.1);
+  }
+  to {
+    text-shadow: 
+      0 0 15px rgba(255, 255, 255, 0.8),
+      0 0 25px rgba(255, 255, 255, 0.5),
+      0 0 35px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.nav {
+  padding: 35px 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 45px 30px;
+  border-radius: var(--radius-sm);
+  margin: 8px 0;
+  transition: var(--transition);
+  font-weight: 700;
+  font-size: 1.8rem;
+  border: 1px solid transparent;
+}
+
+.nav a:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateX(8px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav a.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateX(8px);
+}
+
+.nav a i {
+  width: 35px;
+  text-align: center;
+  font-size: 2.2rem;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  margin-left: 450px;
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+  background-color: var(--bg);
+  animation: fadeIn 0.5s ease;
+  transition: var(--transition);
+  min-height: 100vh;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+/* PAGE HEADER */
+.page-header {
+  margin-bottom: 30px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 40px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.page-header h1 {
+  color: white;
+  margin: 0;
+  font-weight: 700;
+  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.page-header h1 i {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 2.2rem;
+}
+
+/* FORM STYLING */
+form {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 30px;
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+form:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+/* FORM GROUP */
+.form-group {
+  margin-bottom: 30px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-bottom: 12px;
+  transition: var(--transition);
+}
+
+.form-group label i {
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+/* INPUT WITH ICON */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 18px;
+  color: var(--text-light);
+  font-size: 1.2rem;
+  z-index: 1;
+  transition: var(--transition);
+}
+
+.input-with-icon input,
+.input-with-icon textarea {
+  width: 100%;
+  padding: 16px 20px 16px 55px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: var(--transition);
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.input-with-icon input:focus,
+.input-with-icon textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.input-with-icon input:focus + i,
+.input-with-icon textarea:focus + i {
+  color: var(--primary);
+}
+
+.input-with-icon textarea {
+  min-height: 120px;
+  resize: vertical;
+  padding-top: 16px;
+}
+
+/* SELECT DROPDOWN */
+.form-control {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: var(--transition);
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* FILE UPLOAD */
+.file-upload {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: var(--primary-light);
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.file-upload-label:hover {
+  background: var(--primary);
+  color: white;
+  border-style: solid;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.file-upload-label i {
+  font-size: 1.5rem;
+}
+
+.file-upload input[type="file"] {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* MAP CONTAINER */
+.map-container {
+  background: var(--card-bg);
+  border-radius: var(--radius-sm);
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.map-container:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+#map {
+  height: 500px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  z-index: 0;
+}
+
+/* MAP INSTRUCTIONS */
+.map-instructions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--primary-light);
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-left: 4px solid var(--primary);
+}
+
+.map-instructions i {
+  font-size: 1.2rem;
+}
+
+/* INFO BOX */
+.info-box {
+  background: var(--primary-light);
+  padding: 20px;
+  border-radius: var(--radius-sm);
+  margin-top: 15px;
+  border-left: 4px solid var(--primary);
+  box-shadow: var(--shadow);
+}
+
+.info-box p {
+  margin: 8px 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.info-box b {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.info-box span {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* FORM ACTIONS */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  gap: 15px;
+}
+
+.form-actions button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 40px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+}
+
+.form-actions button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.form-actions button:active {
+  transform: translateY(-1px);
+}
+
+.form-actions button i {
+  font-size: 1.2rem;
+}
+
+/* ERROR MESSAGES */
+form > div[style*="color: red"] {
+  background: #ffebee;
+  border-left: 4px solid var(--danger);
+  padding: 15px 20px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+form > div[style*="color: red"] ul {
+  list-style: none;
+}
+
+form > div[style*="color: red"] li {
+  color: var(--danger);
+  font-weight: 500;
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+form > div[style*="color: red"] li::before {
+  content: '⚠';
+  font-size: 1.2rem;
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  color: var(--text-lighter);
+  font-size: 0.9rem;
+  margin-top: 50px;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+/* LEAFLET POPUP CUSTOM STYLING */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-hover);
+}
+
+.leaflet-popup-content {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+}
+
+/* MOBILE MENU TOGGLE */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1100;
+  background: var(--primary);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 1.5rem;
+  box-shadow: var(--shadow-hover);
+  transition: var(--transition);
+}
+
+.mobile-menu-toggle:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+/* OVERLAY */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 380px;
+  }
+  
+  .main-content {
+    margin-left: 380px;
+    padding: 30px;
+  }
+  
+  .nav a {
+    padding: 35px 25px;
+    font-size: 1.3rem;
+  }
+  
+  .nav a i {
+    font-size: 1.8rem;
+  }
+  
+  .sidebar h2 {
+    font-size: 2rem;
+  }
+  
+  .page-header h1 {
+    font-size: 2.2rem;
+  }
+  
+  form {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    width: 320px;
+  }
+  
+  .main-content {
+    margin-left: 320px;
+    padding: 25px;
+  }
+  
+  .nav a {
+    padding: 30px 20px;
+    font-size: 1.2rem;
+  }
+  
+  .nav a i {
+    font-size: 1.5rem;
+  }
+  
+  .sidebar-header img.logo {
+    height: 120px;
+  }
+  
+  .sidebar h2 {
+    font-size: 1.8rem;
+  }
+  
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  form {
+    padding: 25px;
+  }
+  
+  #map {
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    transform: none;
+  }
+  
+  .sidebar-header {
+    padding: 25px 20px;
+  }
+  
+  .sidebar-header img.logo {
+    height: 80px;
+  }
+  
+  .sidebar h2 {
+    font-size: 1.5rem;
+  }
+  
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 20px;
+  }
+  
+  .nav a {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 15px;
+    font-size: 1rem;
+    gap: 10px;
+  }
+  
+  .nav a i {
+    font-size: 1.2rem;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+  
+  .page-header {
+    padding: 30px 20px;
+  }
+  
+  .page-header h1 {
+    font-size: 1.8rem;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .page-header h1 i {
+    font-size: 1.6rem;
+  }
+  
+  form {
+    padding: 25px;
+  }
+  
+  .form-group label {
+    font-size: 1rem;
+  }
+  
+  .input-with-icon input,
+  .input-with-icon textarea,
+  .form-control {
+    padding: 14px 18px 14px 50px;
+    font-size: 0.95rem;
+  }
+  
+  #map {
+    height: 350px;
+  }
+  
+  .form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .mobile-menu-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-content {
+    padding: 15px;
+  }
+  
+  .page-header {
+    padding: 20px 15px;
+  }
+  
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  form {
+    padding: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 25px;
+  }
+  
+  .form-group label {
+    font-size: 0.95rem;
+  }
+  
+  .input-with-icon input,
+  .input-with-icon textarea,
+  .form-control {
+    padding: 12px 15px 12px 45px;
+    font-size: 0.9rem;
+  }
+  
+  .input-with-icon i {
+    left: 15px;
+    font-size: 1rem;
+  }
+  
+  #map {
+    height: 300px;
+  }
+  
+  .map-instructions {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+  }
+  
+  .info-box {
+    padding: 15px;
+  }
+  
+  .info-box p {
+    font-size: 0.9rem;
+  }
+  
+  .form-actions button {
+    padding: 15px 30px;
+    font-size: 1rem;
+  }
+  
+  .file-upload-label {
+    padding: 16px;
+    font-size: 0.9rem;
+  }
+  
+  .file-upload-label i {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .form-group label {
+    font-size: 0.9rem;
+  }
+  
+  .input-with-icon input,
+  .input-with-icon textarea,
+  .form-control {
+    font-size: 0.85rem;
+  }
+  
+  #map {
+    height: 250px;
+  }
+  
+  .form-actions button {
+    padding: 12px 25px;
+    font-size: 0.95rem;
+  }
+}
+
+/* SCROLLBAR STYLING */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* ANIMATIONS */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.form-group {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.form-group:nth-child(2) { animation-delay: 0.1s; }
+.form-group:nth-child(3) { animation-delay: 0.2s; }
+.form-group:nth-child(4) { animation-delay: 0.3s; }
+.form-group:nth-child(5) { animation-delay: 0.4s; }
+.form-group:nth-child(6) { animation-delay: 0.5s; }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'add_complaint' %}" class="active"><i class="fas fa-exclamation-circle"></i> Report Issue</a>
+        <a href="{% url 'my_reports' %}"><i class="fas fa-clipboard-list"></i> My Reports</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="page-header">
+      <h1><i class="fas fa-edit"></i> Submit a Report</h1>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div style="color: red; margin-bottom: 15px;">
+          <ul>
+            {% for field in form %}
+              {% for error in field.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title"><i class="fas fa-heading"></i> Title</label>
+        <div class="input-with-icon">
+          <i class="fas fa-pencil-alt"></i>
+          <input type="text" id="title" name="title" required placeholder="Enter a descriptive title" 
+                 value="{{ form.title.value|default_if_none:'' }}">
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description"><i class="fas fa-align-left"></i> Description</label>
+        <div class="input-with-icon">
+          <i class="fas fa-file-alt"></i>
+          <textarea id="description" name="description" required placeholder="Provide detailed information">{{ form.description.value|default_if_none:'' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Area -->
+      <div class="form-group">
+        <label for="area"><i class="fas fa-map-marker-alt"></i> Area</label>
+        <select id="area" name="area" class="form-control" required>
+          <option value="" disabled selected>Select your area</option>
+          <option value="Naval">Naval</option>
+          <option value="Caibiran">Caibiran</option>
+          <option value="Cabucgayan">Cabucgayan</option>
+          <option value="Biliran">Biliran</option>
+          <option value="Almeria">Almeria</option>
+          <option value="Culaba">Culaba</option>
+          <option value="Kawayan">Kawayan</option>
+          <option value="Maripipi">Maripipi</option>
+        </select>
+      </div>
+
+      <!-- Photo -->
+      <div class="form-group">
+        <label for="photo"><i class="fas fa-camera"></i> Upload Photo</label>
+        <div class="file-upload">
+          <label class="file-upload-label" for="photo">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span id="file-name">Choose an image file (optional)</span>
+          </label>
+          <input type="file" id="photo" name="photo" accept="image/*">
+        </div>
+        <div id="image-preview" style="margin-top: 15px; display: none;">
+          <img id="preview-img" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+          <button type="button" id="remove-image" style="display: block; margin-top: 10px; padding: 8px 16px; background: #e53935; color: white; border: none; border-radius: 6px; cursor: pointer;">Remove Image</button>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="form-group">
+        <label><i class="fas fa-map-marked-alt"></i> Select Location in Biliran</label>
+        <div class="map-container">
+          <div id="map"></div>
+        </div>
+        <div class="map-instructions">
+          <i class="fas fa-info-circle"></i>
+          <span>Click on the map to select the exact location of the issue</span>
+        </div>
+      </div>
+
+      <!-- DISPLAY ADDRESS INFO -->
+      <div class="info-box" style="background:#f3f3f3;padding:12px;border-radius:8px;margin-top:10px;">
+        <p><b>Municipality:</b> <span id="display_municipality">None</span></p>
+        <p><b>Barangay:</b> <span id="display_barangay">None</span></p>
+        <p><b>Street / Purok:</b> <span id="display_specific">None</span></p>
+      </div>
+
+      <!-- Hidden Inputs -->
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+      <input type="hidden" id="id_municipality" name="municipality">
+      <input type="hidden" id="id_barangay" name="barangay">
+      <input type="hidden" id="id_specific" name="specific_location">
+
+      <!-- Submit -->
+      <div class="form-actions">
+        <button type="submit"><i class="fas fa-paper-plane"></i> Submit Report</button>
+      </div>
+    </form>
+
+    <footer>© 2025 Tubig Tracker | Add Complaint</footer>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+/* =====================
+   FILE UPLOAD HANDLING
+===================== */
+document.getElementById('photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const fileName = document.getElementById('file-name');
+    const preview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    
+    if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            e.target.value = '';
+            return;
+        }
+        
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB.');
+            e.target.value = '';
+            return;
+        }
+        
+        // Update file name display
+        fileName.textContent = file.name;
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        fileName.textContent = 'Choose an image file (optional)';
+        preview.style.display = 'none';
+    }
+});
+
+// Remove image functionality
+document.getElementById('remove-image').addEventListener('click', function() {
+    document.getElementById('photo').value = '';
+    document.getElementById('file-name').textContent = 'Choose an image file (optional)';
+    document.getElementById('image-preview').style.display = 'none';
+});
+
+/* =====================
+   MAP SETUP 
+===================== */
+var map = L.map('map').setView([11.65, 124.53], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+}).addTo(map);
+
+var marker;
+
+/* =====================
+   BILIRAN PROVINCE POLYGON
+===================== */
+var biliranPolygon = [
+  [11.675558443032646, 124.32343541053592],
+  [11.714557116695378, 124.42368565580406],
+  [11.686989657876476, 124.53354893828968],
+  [11.606288666777775, 124.57749425128394],
+  [11.5356561381575, 124.62212620979373],
+  [11.493268081799103, 124.60839329948304],
+  [11.468370535091983, 124.57406102370626],
+  [11.468370535091983, 124.50882969973043],
+  [11.458949269063162, 124.48136387910903],
+  [11.481156036255818, 124.44016514817692],
+  [11.534983361790427, 124.40651951791567],
+  [11.606288666777775, 124.37493382420107],
+  [11.643279529050389, 124.35296116770392],
+  [11.67085133520042, 124.32412205605146],
+  [11.686317246528308, 124.35433445873501]
+];
+
+L.polygon(biliranPolygon, {
+    color: "#4CAF50",
+    weight: 2,
+    fillOpacity: 0.1
+}).addTo(map);
+
+/* =====================
+   CHECK IF POINT IS INSIDE POLYGON
+===================== */
+function pointInPolygon(point, polygon) {
+    var x = point[0], y = point[1];
+    var inside = false;
+
+    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        var xi = polygon[i][0], yi = polygon[i][1];
+        var xj = polygon[j][0], yj = polygon[j][1];
+
+        var intersect =
+            ((yi > y) !== (yj > y)) &&
+            (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+/* =====================
+   REVERSE GEOCODE (municipality + barangay + specific)
+===================== */
+function reverseGeocode(lat, lng) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+        .then(res => res.json())
+        .then(data => {
+            let addr = data.address;
+
+            let municipality =
+                addr.city ||
+                addr.town ||
+                addr.village ||
+                addr.county ||
+                "Unknown";
+
+            let barangay =
+                addr.suburb ||
+                addr.neighbourhood ||
+                addr.village ||
+                addr.hamlet ||
+                "Unknown";
+
+            let specific =
+                addr.road ||
+                addr.residential ||
+                addr.quarter ||
+                addr.locality ||
+                "";
+
+            // Set hidden fields
+            document.getElementById("id_municipality").value = municipality;
+            document.getElementById("id_barangay").value = barangay;
+            document.getElementById("id_specific").value = specific;
+
+            // Display to user
+            document.getElementById("display_municipality").innerText = municipality;
+            document.getElementById("display_barangay").innerText = barangay;
+            document.getElementById("display_specific").innerText = specific;
+        })
+        .catch(() => console.log("Reverse geocode failed"));
+}
+
+/* =====================
+   PLACE MARKER
+===================== */
+function placeMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+
+    marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+    marker.bindPopup(`Lat: ${lat}<br>Lng: ${lng}`).openPopup();
+
+    document.getElementById("latitude").value = lat;
+    document.getElementById("longitude").value = lng;
+
+    reverseGeocode(lat, lng);
+
+    // Update location when dragging
+    marker.on("dragend", function () {
+        let newLat = marker.getLatLng().lat;
+        let newLng = marker.getLatLng().lng;
+
+        if (!pointInPolygon([newLat, newLng], biliranPolygon)) {
+            alert("Marker must stay inside Biliran.");
+            marker.setLatLng([lat, lng]);
+            return;
+        }
+
+        document.getElementById("latitude").value = newLat;
+        document.getElementById("longitude").value = newLng;
+
+        reverseGeocode(newLat, newLng);
+    });
+}
+
+/* =====================
+   MAP CLICK EVENT
+===================== */
+map.on("click", function (e) {
+    var lat = e.latlng.lat;
+    var lng = e.latlng.lng;
+
+    if (!pointInPolygon([lat, lng], biliranPolygon)) {
+        alert("Only locations inside Biliran are allowed.");
+        return;
+    }
+
+    placeMarker(lat, lng);
+});
+
+/* =====================
+   FORM VALIDATION
+===================== */
+document.querySelector("form").addEventListener("submit", function (e) {
+    if (!document.getElementById("latitude").value) {
+        e.preventDefault();
+        alert("Please select a location from the map first!");
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    submitBtn.disabled = true;
+    
+    // Re-enable button after 10 seconds as fallback
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 10000);
+});
+
+  </script>
+
+</body>
+</html>

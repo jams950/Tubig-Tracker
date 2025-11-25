@@ -1,0 +1,2646 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TUBIG TRACKER</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
+
+:root {
+  --ocean-deep: #0a2463;
+  --ocean-blue: #1e88e5;
+  --water-light: #42a5f5;
+  --wave-cyan: #00bcd4;
+  --foam-white: #e3f2fd;
+  --text-dark: #1a237e;
+  --text-light: #546e7a;
+  --success: #00897b;
+  --warning: #fb8c00;
+  --danger: #e53935;
+  --shadow: rgba(10, 36, 99, 0.1);
+  --shadow-hover: rgba(10, 36, 99, 0.2);
+  --radius: 16px;
+  --radius-sm: 8px;
+  --transition: all 0.3s ease;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  min-height: 100vh;
+  transition: var(--transition);
+  display: flex;
+}
+
+body[data-theme='dark'] {
+  --ocean-deep: #0d1b2a;
+  --ocean-blue: #1b4965;
+  --water-light: #2d6a8b;
+  --wave-cyan: #00818a;
+  --foam-white: #1e3a5f;
+  --text-dark: #e3f2fd;
+  --text-light: #b0bec5;
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b4965 100%);
+}
+
+.sidebar {
+  width: 450px;
+  background: linear-gradient(180deg, var(--ocean-deep) 0%, var(--ocean-blue) 100%);
+  color: white;
+  padding: 0;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  transition: var(--transition);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 45px 35px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg, var(--ocean-deep) 0%, var(--ocean-blue) 100%);
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 200px;
+  height: 200px;
+  background: transparent;
+  border-radius: 20px;
+  padding: 12px;
+  animation: float 3s ease-in-out infinite;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.sidebar-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #fff, var(--wave-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav {
+  padding: 35px 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 45px 30px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  font-weight: 600;
+  font-size: 1.5rem;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: var(--wave-cyan);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.nav a:hover, .nav a.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateX(8px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav a:hover::before, .nav a.active::before {
+  transform: scaleY(1);
+}
+
+.nav a i {
+  font-size: 2rem;
+  width: 35px;
+  text-align: center;
+}
+
+.main-content {
+  margin-left: 450px;
+  padding: 40px;
+  width: calc(100% - 450px);
+  min-height: 100vh;
+  transition: var(--transition);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.top-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  border: 2px solid var(--ocean-blue);
+  border-radius: var(--radius);
+  padding: 16px 24px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--ocean-blue);
+  transition: var(--transition);
+  box-shadow: 0 4px 15px var(--shadow);
+  font-size: 1.1rem;
+  min-width: 200px;
+}
+
+.user-menu-btn:hover {
+  background: var(--ocean-blue);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-hover);
+}
+
+.user-menu-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 25px var(--shadow-hover);
+  min-width: 260px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: var(--transition);
+  overflow: hidden;
+  margin-top: 10px;
+  z-index: 100;
+}
+
+.user-menu-content.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-menu-content a {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 20px;
+  color: var(--text-dark);
+  text-decoration: none;
+  transition: var(--transition);
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.user-menu-content a:last-child {
+  border-bottom: none;
+}
+
+.user-menu-content a:hover {
+  background: var(--foam-white);
+  padding-left: 24px;
+}
+
+.page-header {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan)), url('{% static "images/sidebar.png" %}') center/cover;
+  background-blend-mode: overlay;
+  background-attachment: fixed;
+  padding: 40px;
+  border-radius: var(--radius);
+  color: white;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 30px var(--shadow-hover);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+}
+
+
+
+.last-updated {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-greeting {
+  background: white;
+  padding: 40px;
+  border-radius: var(--radius);
+  margin-bottom: 40px;
+  box-shadow: 0 8px 25px var(--shadow);
+  transition: var(--transition);
+  border: 1px solid #e0e0e0;
+}
+
+.admin-info-large {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.admin-avatar {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: white;
+  box-shadow: 0 8px 20px var(--shadow);
+  animation: float 3s ease-in-out infinite;
+}
+
+.admin-details h2 {
+  color: var(--text-dark);
+  font-size: 2rem;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.admin-details p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px var(--shadow);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px var(--shadow-hover);
+}
+
+.card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 2rem;
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card:hover .card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.card-icon.active { background: linear-gradient(135deg, #00897b, #00acc1); color: white; }
+.card-icon.total { background: linear-gradient(135deg, var(--ocean-blue), var(--water-light)); color: white; }
+.card-icon.pending { background: linear-gradient(135deg, #fb8c00, #ff6f00); color: white; }
+.card-icon.progress { background: linear-gradient(135deg, #1e88e5, #42a5f5); color: white; }
+.card-icon.resolved { background: linear-gradient(135deg, #00897b, #26a69a); color: white; }
+
+.card h3 {
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card p {
+  color: var(--text-dark);
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.map-container {
+  background: white;
+  border-radius: var(--radius);
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 25px var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  border: 1px solid #e0e0e0;
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.map-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-legend {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+  background: var(--foam-white);
+  border-radius: var(--radius-sm);
+  padding: 15px 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.map-legend div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dot.pending { background: #ff9800; box-shadow: 0 0 10px rgba(255, 152, 0, 0.5); }
+.dot.progress { background: #2196f3; box-shadow: 0 0 10px rgba(33, 150, 243, 0.5); }
+.dot.resolved { background: #4caf50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+
+.custom-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-marker:hover {
+  transform: scale(1.1);
+}
+
+.water-marker-3d {
+  animation: pinFloat 3s ease-in-out infinite, pinGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pinFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes pinGlow {
+  0% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+  100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.8)); }
+}
+
+/* Leaflet popup styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px;
+  line-height: 1.4;
+}
+
+#map {
+  height: 500px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* Ensure map loads properly */
+.leaflet-container {
+  background: #e3f2fd;
+}
+
+.leaflet-control-zoom {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.leaflet-control-zoom a {
+  border-radius: 4px;
+  color: var(--ocean-blue);
+  font-weight: bold;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--ocean-blue);
+  color: white;
+}
+
+.recent-reports {
+  background: white;
+  border-radius: var(--radius);
+  padding: 40px;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 25px var(--shadow);
+  border: 1px solid #e0e0e0;
+}
+
+.recent-reports h3 {
+  color: var(--text-dark);
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 600;
+}
+
+.search-bar-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.search-bar {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 14px 20px 14px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 50px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  transition: var(--transition);
+  background: white;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--ocean-blue);
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+}
+
+.search-bar i {
+  position: absolute;
+  left: 18px;
+  color: var(--text-light);
+  font-size: 1.2rem;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--foam-white);
+  padding: 10px 16px;
+  border-radius: 50px;
+  color: var(--ocean-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.filter-badge i {
+  cursor: pointer;
+}
+
+.filter-badge:hover {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  color: white;
+}
+
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.reports-table thead {
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  color: white;
+}
+
+.reports-table th {
+  padding: 20px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reports-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: var(--transition);
+}
+
+.reports-table tbody tr:hover {
+  background: var(--foam-white);
+}
+
+.reports-table td {
+  padding: 20px 16px;
+  color: var(--text-dark);
+  font-size: 1rem;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.status-pending { background: linear-gradient(135deg, #fb8c00, #ff6f00); box-shadow: 0 2px 8px rgba(251, 140, 0, 0.3); }
+.status-progress { background: linear-gradient(135deg, #1e88e5, #42a5f5); box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3); }
+.status-resolved { background: linear-gradient(135deg, #00897b, #26a69a); box-shadow: 0 2px 8px rgba(0, 137, 123, 0.3); }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 25px;
+  flex-wrap: wrap;
+}
+
+.pagination button, .pagination span {
+  padding: 10px 14px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  color: var(--text-dark);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  transition: var(--transition);
+  font-size: 0.95rem;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--ocean-blue);
+  color: white;
+  border-color: var(--ocean-blue);
+  transform: translateY(-2px);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination .active {
+  background: var(--ocean-blue);
+  color: white;
+  border-color: var(--ocean-blue);
+}
+
+.pagination-info {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 15px;
+}
+
+/* Profile Button Styles */
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--ocean-blue);
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.profile-btn:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.1), rgba(13, 71, 161, 0.2));
+  backdrop-filter: blur(15px);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: linear-gradient(145deg, #ffffff, #f0f4f8);
+  border-radius: 25px;
+  width: 90%;
+  max-width: 950px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  animation: modalSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes modalSlide {
+  from { 
+    opacity: 0; 
+    transform: scale(0.8) translateY(-50px) rotateX(15deg); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0) rotateX(0deg); 
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 40px;
+  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 50%, #1976d2 100%);
+  color: white;
+  box-shadow: 
+    0 8px 32px rgba(21, 101, 192, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+}
+
+.modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.close {
+  font-size: 32px;
+  cursor: pointer;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-body {
+  display: flex;
+  height: 70vh;
+}
+
+.settings-sidebar {
+  width: 380px;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 100%);
+  padding: 15px 0;
+  border-right: 3px solid rgba(21, 101, 192, 0.1);
+  overflow-y: auto;
+  box-shadow: inset -5px 0 15px rgba(0, 0, 0, 0.05);
+}
+
+.settings-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-nav li {
+  border-bottom: none;
+}
+
+.settings-tab {
+  width: 100%;
+  padding: 35px 25px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 5px 0;
+  border-radius: 0;
+  position: relative;
+  text-decoration: none;
+}
+
+.settings-tab::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 0;
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.settings-tab i {
+  font-size: 1.8rem;
+  width: 35px;
+  text-align: center;
+}
+
+.settings-tab:hover {
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.1), rgba(25, 118, 210, 0.1));
+  transform: none;
+  box-shadow: 0 4px 15px rgba(21, 101, 192, 0.2);
+}
+
+.settings-tab:hover::before {
+  height: 60%;
+}
+
+.settings-tab.active {
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  color: white;
+  transform: none;
+  box-shadow: 
+    0 8px 25px rgba(21, 101, 192, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.settings-tab.active::before {
+  height: 80%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.settings-section {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  display: none;
+}
+
+.settings-section.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+.settings-content {
+  display: block;
+}
+
+.settings-section h3 {
+  margin: 0 0 25px 0;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+}
+
+.form-group {
+  margin-bottom: 30px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 18px 20px;
+  border: 3px solid #e0e7ff;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: #1565c0;
+  box-shadow: 
+    0 8px 25px rgba(21, 101, 192, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--ocean-blue);
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.btn-primary {
+  padding: 18px 30px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  color: white;
+  box-shadow: 
+    0 8px 25px rgba(76, 175, 80, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 12px 35px rgba(76, 175, 80, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(30, 136, 229, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary {
+  padding: 18px 30px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+  color: white;
+  box-shadow: 
+    0 8px 25px rgba(21, 101, 192, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  margin-right: 15px;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 12px 35px rgba(21, 101, 192, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-danger {
+  padding: 18px 30px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+  color: white;
+  box-shadow: 
+    0 8px 25px rgba(229, 57, 53, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-danger:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 12px 35px rgba(229, 57, 53, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-danger:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(229, 57, 53, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.status-config {
+  display: grid;
+  gap: 20px;
+}
+
+.status-item {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  transition: var(--transition);
+}
+
+.status-item:hover {
+  border-color: var(--ocean-blue);
+  box-shadow: 0 4px 15px rgba(30, 136, 229, 0.1);
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.status-name {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--text-dark);
+}
+
+.color-picker {
+  width: 50px;
+  height: 35px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--ocean-blue);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.notification-item, .preference-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 8px;
+  margin-bottom: 18px;
+  border: 2px solid #e0e0e0;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.notification-item:hover, .preference-item:hover {
+  border-color: var(--ocean-blue);
+  box-shadow: 0 6px 20px rgba(30, 136, 229, 0.15);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.notification-item h4, .preference-item h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.3rem;
+  color: var(--text-dark);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.notification-item p, .preference-item p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: var(--text-light);
+  font-size: 1rem;
+  margin-top: 40px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1100;
+  background: var(--ocean-blue);
+  color: white;
+  border: none;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 15px var(--shadow-hover);
+  transition: var(--transition);
+}
+
+.mobile-menu-toggle:hover {
+  background: var(--ocean-deep);
+  transform: scale(1.05);
+}
+
+/* Overlay for mobile menu */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 380px;
+  }
+  
+  .main-content {
+    margin-left: 380px;
+    width: calc(100% - 380px);
+    padding: 30px;
+  }
+  
+  .nav a {
+    padding: 35px 25px;
+    font-size: 1.3rem;
+  }
+  
+  .stats {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: 1% auto;
+  }
+  
+  .modal-body {
+    flex-direction: column;
+    height: auto;
+    max-height: 85vh;
+  }
+  
+  .settings-sidebar {
+    width: 100%;
+    max-height: 200px;
+    overflow-x: auto;
+  }
+  
+  .settings-nav {
+    display: flex;
+    white-space: nowrap;
+  }
+  
+  .settings-nav li {
+    border-bottom: none;
+    border-right: 1px solid #e0e0e0;
+    flex-shrink: 0;
+  }
+  
+  .settings-nav a {
+    padding: 15px 20px;
+    border-left: none;
+    border-bottom: 4px solid transparent;
+  }
+  
+  .settings-nav a:hover, .settings-nav a.active {
+    transform: translateY(-2px);
+    border-left: none;
+    border-bottom-color: var(--ocean-blue);
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    width: 320px;
+  }
+  
+  .main-content {
+    margin-left: 320px;
+    width: calc(100% - 320px);
+    padding: 25px;
+  }
+  
+  .page-header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .stats {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  
+  .card p {
+    font-size: 2.2rem;
+  }
+  
+  .map-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .map-legend {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 320px;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-greeting {
+    padding: 30px 25px;
+  }
+
+  .admin-info-large {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .admin-details h2 {
+    font-size: 1.8rem;
+  }
+
+  .stats {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+
+  .card {
+    padding: 25px 20px;
+  }
+
+  .card p {
+    font-size: 2rem;
+  }
+
+  .search-bar-container {
+    flex-direction: column;
+  }
+
+  .search-bar {
+    min-width: auto;
+  }
+
+  .search-bar input {
+    min-width: auto;
+    padding: 12px 18px 12px 40px;
+  }
+
+  .recent-reports {
+    padding: 25px 20px;
+    overflow-x: auto;
+  }
+
+  .recent-reports h3 {
+    font-size: 1.6rem;
+  }
+
+  .reports-table {
+    min-width: 700px;
+  }
+
+  .reports-table th,
+  .reports-table td {
+    padding: 16px 12px;
+    font-size: 0.9rem;
+  }
+
+  .status-badge {
+    min-width: 80px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .pagination button, .pagination span {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .map-container {
+    padding: 25px 20px;
+  }
+
+  #map {
+    height: 400px;
+  }
+
+  .map-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .map-title {
+    font-size: 1.2rem;
+  }
+
+  .map-legend {
+    width: 100%;
+    justify-content: space-around;
+    padding: 12px 15px;
+  }
+
+  .map-legend div {
+    font-size: 0.85rem;
+  }
+  
+  .page-header {
+    padding: 30px 25px;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .profile-btn {
+    font-size: 0.9rem;
+    padding: 10px 16px;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .modal-content {
+    width: 98%;
+    margin: 1% auto;
+    border-radius: 15px;
+  }
+  
+  .settings-content {
+    padding: 20px;
+  }
+  
+  .settings-nav a {
+    font-size: 1rem;
+    padding: 12px 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .main-content {
+    padding: 15px;
+  }
+
+  .admin-greeting {
+    padding: 25px 20px;
+  }
+
+  .admin-details h2 {
+    font-size: 1.6rem;
+  }
+
+  .admin-details p {
+    font-size: 1rem;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card {
+    padding: 20px 15px;
+  }
+
+  .card h3 {
+    font-size: 0.9rem;
+  }
+
+  .card p {
+    font-size: 1.8rem;
+  }
+
+  .recent-reports {
+    padding: 20px 15px;
+  }
+
+  .recent-reports h3 {
+    font-size: 1.4rem;
+  }
+
+  .search-bar input {
+    padding: 10px 16px 10px 35px;
+    font-size: 0.9rem;
+  }
+
+  .search-bar i {
+    left: 12px;
+    font-size: 1rem;
+  }
+
+  .reports-table {
+    min-width: 600px;
+  }
+
+  .reports-table th,
+  .reports-table td {
+    padding: 12px 8px;
+    font-size: 0.8rem;
+  }
+
+  .status-badge {
+    min-width: 70px;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+
+  .pagination {
+    gap: 3px;
+  }
+
+  .pagination button, .pagination span {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .pagination-info {
+    font-size: 0.85rem;
+  }
+
+  .map-container {
+    padding: 20px 15px;
+  }
+
+  .map-title {
+    font-size: 1.1rem;
+  }
+
+  .map-legend {
+    padding: 10px 12px;
+    gap: 15px;
+  }
+
+  .map-legend div {
+    font-size: 0.8rem;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+  }
+
+  #map {
+    height: 350px;
+  }
+
+  .page-header {
+    padding: 25px 20px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .profile-btn span {
+    display: none;
+  }
+  
+  .modal-header {
+    padding: 20px;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .settings-content {
+    padding: 15px;
+  }
+  
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 10px 12px;
+    font-size: 1rem;
+  }
+  
+  .btn-primary, .btn-secondary, .btn-danger {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav a {
+    padding: 25px 20px;
+    font-size: 1.1rem;
+  }
+  
+  .nav a i {
+    font-size: 1.5rem;
+  }
+  
+  .page-header h1 {
+    font-size: 1.6rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .reports-table {
+    min-width: 550px;
+  }
+  
+  .reports-table th,
+  .reports-table td {
+    padding: 10px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .sidebar-header {
+    padding: 30px 25px;
+  }
+  
+  .logo {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 1.6rem;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+      <div class="nav">
+        <a href="{% url 'admin_dashboard' %}" class="active"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'view_users' %}"><i class="fas fa-users"></i> User Management</a>
+        <a href="{% url 'admin_manage_reports' %}"><i class="fas fa-file-alt"></i> Manage Reports</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Overlay -->
+  <div class="overlay" onclick="closeSidebar()"></div>
+
+  <div class="main-content">
+    <div class="admin-greeting">
+      <div class="admin-info-large">
+        <div class="admin-avatar"><i class="fas fa-user-shield"></i></div>
+        <div class="admin-details">
+          <h2>Welcome back, Administrator!</h2>
+          <p>System overview and management dashboard</p>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 15px; flex-wrap: wrap;">
+          <button class="profile-btn" onclick="showNotificationModal('System Status', 'All systems are running normally. Last backup: Today 3:00 AM')">
+            <div class="profile-avatar">
+              <i class="fas fa-bell"></i>
+            </div>
+            <span>Notifications</span>
+          </button>
+          <button class="profile-btn" onclick="openAdminSettingsModal()">
+            <div class="profile-avatar">
+              <i class="fas fa-user-shield"></i>
+            </div>
+            <span>Admin Settings</span>
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="card"><div class="card-icon active"><i class="fas fa-user-check"></i></div><h3>Active Users</h3><p id="activeUsersCount">{{ total_users }}</p></div>
+      <div class="card"><div class="card-icon total"><i class="fas fa-file-alt"></i></div><h3>Total Reports</h3><p id="totalReportsCount">{{ total_reports }}</p></div>
+      <div class="card"><div class="card-icon pending"><i class="fas fa-clock"></i></div><h3>Pending</h3><p id="pendingCount">{{ pending_reports }}</p></div>
+      <div class="card"><div class="card-icon progress"><i class="fas fa-cogs"></i></div><h3>In Progress</h3><p id="inProgressCount">{{ in_progress_reports }}</p></div>
+      <div class="card"><div class="card-icon resolved"><i class="fas fa-check-circle"></i></div><h3>Resolved</h3><p id="resolvedCount">{{ resolved_reports }}</p></div>
+    </div>
+
+    <div class="map-container">
+      <div class="map-header">
+        <div class="map-title"><i class="fas fa-map-marked-alt"></i> All Water Reports Map</div>
+        <div class="map-legend">
+          <div><span class="dot pending"></span> Pending</div>
+          <div><span class="dot progress"></span> In Progress</div>
+          <div><span class="dot resolved"></span> Completed</div>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <div class="recent-reports">
+      <h3><i class="fas fa-list"></i> Recent Reports</h3>
+      
+      <div class="search-bar-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Search by title, user, area, or barangay...">
+        </div>
+      </div>
+
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Title</th>
+            <th>Area</th>
+            <th>Barangay</th>
+            <th>Status</th>
+            <th>Date Reported</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+          <tr><td colspan="7" style="text-align: center; color: var(--text-light);">Loading reports...</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pagination" id="paginationContainer"></div>
+      <div class="pagination-info" id="paginationInfo"></div>
+    </div>
+
+    <footer>© 2025 TUBIG Tracker | Dashboard</footer>
+  </div>
+
+  <!-- Admin Settings Modal -->
+  <div id="adminSettingsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-cogs"></i> Admin Settings</h2>
+        <button class="close" onclick="closeModal('adminSettingsModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-sidebar">
+          <ul class="settings-nav">
+            <li><a href="#" class="settings-tab active" data-tab="account"><i class="fas fa-user-cog"></i> Account Settings</a></li>
+            <li><a href="#" class="settings-tab" data-tab="status"><i class="fas fa-tags"></i> Status Configuration</a></li>
+            <li><a href="#" class="settings-tab" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</a></li>
+            <li><a href="#" class="settings-tab" data-tab="reports"><i class="fas fa-file-alt"></i> Report Settings</a></li>
+            <li><a href="#" class="settings-tab" data-tab="system"><i class="fas fa-server"></i> System Settings</a></li>
+            <li><a href="#" class="settings-tab" data-tab="organization"><i class="fas fa-building"></i> Organization Info</a></li>
+          </ul>
+        </div>
+        <!-- Account Settings -->
+        <div id="account" class="settings-section active">
+          <div class="settings-content">
+            <h3><i class="fas fa-user-cog"></i> Account Settings</h3>
+            <div class="form-group">
+              <label>Admin Name</label>
+              <input type="text" value="Administrator" placeholder="Enter admin name">
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" value="admin@tubigtracker.com" placeholder="Enter email address">
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" value="+63 912 345 6789" placeholder="Enter phone number">
+            </div>
+            <div style="margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border-radius: 20px; border: 2px solid rgba(21, 101, 192, 0.1); text-align: center; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);">
+              <button class="btn-primary" onclick="saveAccountSettings()"><i class="fas fa-save"></i> Save Changes</button>
+              <button class="btn-secondary" onclick="openChangePasswordModal()"><i class="fas fa-key"></i> Change Password</button>
+              <button class="btn-danger" onclick="manageAdminRoles()"><i class="fas fa-users-cog"></i> Manage Admin Roles</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Configuration -->
+        <div id="status" class="settings-section">
+          <div class="settings-content">
+            <h3><i class="fas fa-tags"></i> Status Configuration</h3>
+            <div class="status-config">
+              <div class="status-item">
+                <div class="status-header">
+                  <span class="status-name">Pending</span>
+                  <input type="color" class="color-picker" value="#ff9800">
+                </div>
+                <input type="text" value="Pending" placeholder="Status label">
+              </div>
+              <div class="status-item">
+                <div class="status-header">
+                  <span class="status-name">In Progress</span>
+                  <input type="color" class="color-picker" value="#2196f3">
+                </div>
+                <input type="text" value="In Progress" placeholder="Status label">
+              </div>
+              <div class="status-item">
+                <div class="status-header">
+                  <span class="status-name">Resolved</span>
+                  <input type="color" class="color-picker" value="#4caf50">
+                </div>
+                <input type="text" value="Resolved" placeholder="Status label">
+              </div>
+            </div>
+            <div style="margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border-radius: 20px; border: 2px solid rgba(21, 101, 192, 0.1); text-align: center; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);">
+              <button class="btn-primary" onclick="saveStatusConfig()"><i class="fas fa-save"></i> Save Status Configuration</button>
+              <button class="btn-secondary" onclick="addNewStatus()"><i class="fas fa-plus"></i> Add New Status</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div id="notifications" class="settings-section">
+          <div class="settings-content">
+            <h3><i class="fas fa-bell"></i> Notification Settings</h3>
+            <div class="notification-item">
+              <div>
+                <h4>Automatic Notifications</h4>
+                <p>Send automatic notifications to users when report status changes</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="notification-item">
+              <div>
+                <h4>Email Alerts</h4>
+                <p>Send email notifications for new reports and status updates</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="notification-item">
+              <div>
+                <h4>SMS Alerts</h4>
+                <p>Send SMS notifications for urgent reports</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Custom Notification Message</label>
+              <textarea placeholder="Your report is now In Progress. We are working on resolving your water issue."></textarea>
+            </div>
+            <div style="margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border-radius: 20px; border: 2px solid rgba(21, 101, 192, 0.1); text-align: center; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);">
+              <button class="btn-primary" onclick="saveNotificationSettings()"><i class="fas fa-save"></i> Save Notification Settings</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Settings -->
+        <div id="reports" class="settings-section">
+          <div class="settings-content">
+            <h3><i class="fas fa-file-alt"></i> Report Management Settings</h3>
+            <div class="preference-item">
+              <div>
+                <h4>Auto-assign Technician</h4>
+                <p>Automatically assign available technicians to new reports</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Default Priority Level</label>
+              <select>
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Archive Resolved Reports After (days)</label>
+              <input type="number" value="30" min="1" max="365">
+            </div>
+            <div class="form-group">
+              <label>Maximum Reports Per User Per Day</label>
+              <input type="number" value="5" min="1" max="20">
+            </div>
+            <div style="margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border-radius: 20px; border: 2px solid rgba(21, 101, 192, 0.1); text-align: center; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);">
+              <button class="btn-primary" onclick="saveReportSettings()"><i class="fas fa-save"></i> Save Report Settings</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Settings -->
+        <div id="system" class="settings-section">
+          <div class="settings-content">
+            <h3><i class="fas fa-server"></i> System Management</h3>
+            <div class="preference-item">
+              <div>
+                <h4>System Maintenance Mode</h4>
+                <p>Enable maintenance mode to prevent user access during updates</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Backup Frequency</label>
+              <select>
+                <option value="daily" selected>Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <div style="margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border-radius: 20px; border: 2px solid rgba(21, 101, 192, 0.1); text-align: center; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);">
+              <button class="btn-primary" onclick="backupDatabase()"><i class="fas fa-database"></i> Backup Database Now</button>
+              <button class="btn-secondary" onclick="restoreBackup()"><i class="fas fa-undo"></i> Restore Backup</button>
+              <button class="btn-secondary" onclick="exportReports()"><i class="fas fa-download"></i> Export All Reports</button>
+              <button class="btn-secondary" onclick="viewSystemLogs()"><i class="fas fa-list"></i> View System Logs</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Organization Information -->
+        <div id="organization" class="settings-section">
+          <div class="settings-content">
+            <h3><i class="fas fa-building"></i> Organization Information</h3>
+            <div class="form-group">
+              <label>Water Office Name</label>
+              <input type="text" value="Tubig Tracker Water Management Office" placeholder="Enter office name">
+            </div>
+            <div class="form-group">
+              <label>Office Location</label>
+              <textarea placeholder="Enter complete office address">123 Water Street, Barangay Centro, City, Province</textarea>
+            </div>
+            <div class="form-group">
+              <label>Contact Number</label>
+              <input type="tel" value="+63 912 345 6789" placeholder="Enter contact number">
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" value="info@tubigtracker.com" placeholder="Enter email address">
+            </div>
+            <div class="form-group">
+              <label>Operating Hours</label>
+              <input type="text" value="Monday - Friday: 8:00 AM - 5:00 PM" placeholder="Enter operating hours">
+            </div>
+            <div style="margin: 40px 0; padding: 30px; background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border-radius: 20px; border: 2px solid rgba(21, 101, 192, 0.1); text-align: center; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);">
+              <button class="btn-primary" onclick="saveOrganizationInfo()"><i class="fas fa-save"></i> Save Organization Info</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2><i class="fas fa-key"></i> Change Password</h2>
+        <button class="close" onclick="closeModal('changePasswordModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="display: block; height: auto;">
+        <div class="settings-content">
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" id="currentAdminPassword" placeholder="Enter current password">
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="newAdminPassword" placeholder="Enter new password">
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="confirmAdminPassword" placeholder="Confirm new password">
+          </div>
+          <button class="btn-primary" onclick="changeAdminPassword()">Change Password</button>
+          <button class="btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content" style="max-width: 450px; max-height: 280px;">
+      <div class="modal-header" style="padding: 20px 25px;">
+        <h2 id="confirmTitle" style="font-size: 1.4rem;"><i class="fas fa-info-circle"></i> Confirm Action</h2>
+        <button class="close" style="width: 40px; height: 40px; font-size: 1.3rem;" onclick="closeModal('confirmModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="display: block; height: auto; padding: 0;">
+        <div class="settings-content" style="text-align: center; padding: 20px 25px;">
+          <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px 20px; border-radius: 6px; margin-bottom: 20px; border: 2px solid rgba(30, 136, 229, 0.2);">
+            <p id="confirmMessage" style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark); margin: 0; line-height: 1.4;">Are you sure you want to perform this action?</p>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="btn-primary" style="padding: 10px 20px; font-size: 0.95rem;" onclick="confirmAction()"><i class="fas fa-check"></i> Confirm</button>
+            <button class="btn-secondary" style="padding: 10px 20px; font-size: 0.95rem;" onclick="closeModal('confirmModal')"><i class="fas fa-times"></i> Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2 id="notificationTitle"><i class="fas fa-bell"></i> Notification</h2>
+        <button class="close" onclick="closeModal('notificationModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="display: block; height: auto;">
+        <div class="settings-content">
+          <p id="notificationMessage" style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 20px;"></p>
+          <button class="btn-primary" onclick="closeModal('notificationModal')">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Modal Functions
+    function openAdminSettingsModal() {
+      document.getElementById('adminSettingsModal').style.display = 'flex';
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+    
+    function openChangePasswordModal() {
+      document.getElementById('changePasswordModal').style.display = 'flex';
+    }
+    
+    // Settings Tab Navigation
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('settings-tab')) {
+        e.preventDefault();
+        
+        // Remove active class from all tabs and sections
+        document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.settings-section').forEach(section => section.classList.remove('active'));
+        
+        // Add active class to clicked tab
+        e.target.classList.add('active');
+        
+        // Show corresponding section
+        const tabId = e.target.getAttribute('data-tab');
+        const section = document.getElementById(tabId);
+        if (section) {
+          section.classList.add('active');
+        }
+      }
+    });
+    
+    // Settings Functions
+    function saveAccountSettings() {
+      showConfirmModal('Account Settings', 'Account settings saved successfully!', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function saveStatusConfig() {
+      showConfirmModal('Status Configuration', 'Status configuration saved successfully!', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function addNewStatus() {
+      const statusConfig = document.querySelector('.status-config');
+      const newStatus = document.createElement('div');
+      newStatus.className = 'status-item';
+      newStatus.innerHTML = `
+        <div class="status-header">
+          <span class="status-name">New Status</span>
+          <input type="color" class="color-picker" value="#9c27b0">
+        </div>
+        <input type="text" value="New Status" placeholder="Status label">
+      `;
+      statusConfig.appendChild(newStatus);
+    }
+    
+    function saveNotificationSettings() {
+      showConfirmModal('Notification Settings', 'Notification settings saved successfully!', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function saveReportSettings() {
+      showConfirmModal('Report Settings', 'Report settings saved successfully!', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function backupDatabase() {
+      showConfirmModal('Database Backup', 'Are you sure you want to backup the database now?', function() {
+        showConfirmModal('Backup Complete', 'Database backup completed successfully!', function() {
+          closeModal('confirmModal');
+        });
+      });
+    }
+    
+    function restoreBackup() {
+      showConfirmModal('Restore Backup', 'Are you sure you want to restore from backup? This will overwrite current data.', function() {
+        showConfirmModal('Restore Complete', 'Database restored successfully!', function() {
+          closeModal('confirmModal');
+        });
+      });
+    }
+    
+    function exportReports() {
+      showConfirmModal('Export Reports', 'Exporting all reports to CSV format...', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function viewSystemLogs() {
+      showConfirmModal('System Logs', 'Opening system logs in new window...', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function saveOrganizationInfo() {
+      showConfirmModal('Organization Info', 'Organization information saved successfully!', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function manageAdminRoles() {
+      showConfirmModal('Admin Roles', 'Opening admin role management...', function() {
+        closeModal('confirmModal');
+      });
+    }
+    
+    function changeAdminPassword() {
+      const current = document.getElementById('currentAdminPassword').value;
+      const newPass = document.getElementById('newAdminPassword').value;
+      const confirm = document.getElementById('confirmAdminPassword').value;
+      
+      if (!current || !newPass || !confirm) {
+        alert('Please fill in all password fields.');
+        return;
+      }
+      
+      if (newPass !== confirm) {
+        alert('New passwords do not match.');
+        return;
+      }
+      
+      if (newPass.length < 8) {
+        alert('Password must be at least 8 characters long.');
+        return;
+      }
+      
+      showConfirmModal('Change Password', 'Admin password changed successfully!', function() {
+        closeModal('changePasswordModal');
+        closeModal('confirmModal');
+        document.getElementById('currentAdminPassword').value = '';
+        document.getElementById('newAdminPassword').value = '';
+        document.getElementById('confirmAdminPassword').value = '';
+      });
+    }
+    
+    let confirmCallback = null;
+    
+    function showConfirmModal(title, message, callback) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message;
+      document.getElementById('confirmModal').style.display = 'flex';
+      confirmCallback = callback;
+    }
+    
+    function confirmAction() {
+      if (confirmCallback) {
+        confirmCallback();
+        confirmCallback = null;
+      }
+    }
+
+    function showNotificationModal(title, message) {
+      document.getElementById('notificationTitle').innerHTML = `<i class="fas fa-bell"></i> ${title}`;
+      document.getElementById('notificationMessage').textContent = message;
+      document.getElementById('notificationModal').style.display = 'flex';
+    }
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        const modalId = event.target.id;
+        closeModal(modalId);
+      }
+    }
+
+    const map = L.map('map', { minZoom: 10, maxZoom: 18 }).setView([11.5411, 124.5405], 13);
+    const bounds = L.latLngBounds(L.latLng(11.2,124.2), L.latLng(11.8,124.8));
+    map.setMaxBounds(bounds);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+    
+    console.log('DEBUG: Map initialized at Biliran coordinates');
+    
+    // Add map ready event
+    map.whenReady(function() {
+      console.log('DEBUG: Map is ready');
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    });
+
+    let markers = [];
+    let allComplaints = [];
+    let filteredComplaints = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
+
+    function updateLastUpdatedTime() {
+      const timeElement = document.getElementById('lastUpdatedTime');
+      if (timeElement) {
+        timeElement.textContent = new Date().toLocaleTimeString();
+      } else {
+        console.log('DEBUG: lastUpdatedTime element not found');
+      }
+    }
+
+    async function loadComplaints(){
+      try {
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/all-complaints/?t=${timestamp}`, {
+          method:'GET',
+          headers:{ 'Cache-Control':'no-cache', 'X-Requested-With':'XMLHttpRequest' },
+          credentials:'same-origin'
+        });
+        if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const newComplaints = await res.json();
+        
+        console.log(`DEBUG: Received ${newComplaints.length} reports from API`);
+        
+        // Log first few reports for debugging
+        if (newComplaints.length > 0) {
+          console.log('DEBUG: First report data:', newComplaints[0]);
+        }
+
+        // Always update if data exists, even if it's the same (for initial load)
+        if(newComplaints.length > 0 && (allComplaints.length === 0 || JSON.stringify(allComplaints)!==JSON.stringify(newComplaints))){
+          allComplaints = newComplaints;
+          filteredComplaints = newComplaints;
+          currentPage = 1;
+          updateMap(allComplaints);
+          updateTable(filteredComplaints);
+          updateStats(allComplaints);
+          updatePagination();
+          updateLastUpdatedTime();
+          console.log('DEBUG: Dashboard data updated successfully');
+        } else if (newComplaints.length === 0) {
+          console.log('DEBUG: No reports received from API');
+          loadSampleData();
+        }
+      } catch(err){ 
+        console.error('Error loading complaints:', err); 
+        console.error('Error details:', err.message);
+        // Load sample data if API fails
+        loadSampleData();
+      }
+    }
+
+    function loadSampleData() {
+      // Show message if no real data available
+      allComplaints = [];
+      filteredComplaints = [];
+      currentPage = 1;
+      updateTable(filteredComplaints);
+      updateStats(allComplaints);
+      updatePagination();
+      
+      console.log('No reports found or API failed');
+    }
+
+    function filterComplaints() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      filteredComplaints = allComplaints.filter(c => {
+        const title = (c.title || '').toLowerCase();
+        const user = (c.user || '').toLowerCase();
+        const area = (c.area || '').toLowerCase();
+        const barangay = (c.barangay || '').toLowerCase();
+        return title.includes(searchTerm) || user.includes(searchTerm) || area.includes(searchTerm) || barangay.includes(searchTerm);
+      });
+      currentPage = 1;
+      updateTable(filteredComplaints);
+      updatePagination();
+    }
+
+    function updateTable(data){
+      const tbody = document.getElementById('reportsTableBody');
+      const startIdx = (currentPage - 1) * itemsPerPage;
+      const endIdx = startIdx + itemsPerPage;
+      const pageData = data.slice(startIdx, endIdx);
+      
+      console.log(`DEBUG: Updating table with ${pageData.length} reports on page ${currentPage}`);
+
+      if(pageData.length === 0 && currentPage === 1){
+        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-light);">No reports found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = pageData.map(c=>`
+        <tr>
+          <td>${c.id}</td>
+          <td>${c.user}</td>
+          <td>${c.title}</td>
+          <td>${c.area||'N/A'}</td>
+          <td>${c.barangay||'N/A'}</td>
+          <td><span class="status-badge ${c.status.trim().toLowerCase().replace(' ','_')==='pending'?'status-pending':c.status.trim().toLowerCase().replace(' ','_')==='in_progress'?'status-progress':'status-resolved'}">${c.status}</span></td>
+          <td>${new Date(c.created_at).toLocaleDateString()} ${new Date(c.created_at).toLocaleTimeString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
+      const container = document.getElementById('paginationContainer');
+      const info = document.getElementById('paginationInfo');
+      
+      container.innerHTML = '';
+      
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = '← Previous';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.addEventListener('click', () => {
+        if(currentPage > 1) {
+          currentPage--;
+          updateTable(filteredComplaints);
+          updatePagination();
+          window.scrollTo({ top: document.querySelector('.recent-reports').offsetTop - 100, behavior: 'smooth' });
+        }
+      });
+      container.appendChild(prevBtn);
+
+      for(let i = 1; i <= totalPages; i++){
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = i === currentPage ? 'active' : '';
+        btn.addEventListener('click', () => {
+          currentPage = i;
+          updateTable(filteredComplaints);
+          updatePagination();
+          window.scrollTo({ top: document.querySelector('.recent-reports').offsetTop - 100, behavior: 'smooth' });
+        });
+        container.appendChild(btn);
+      }
+
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = 'Next →';
+      nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+      nextBtn.addEventListener('click', () => {
+        if(currentPage < totalPages) {
+          currentPage++;
+          updateTable(filteredComplaints);
+          updatePagination();
+          window.scrollTo({ top: document.querySelector('.recent-reports').offsetTop - 100, behavior: 'smooth' });
+        }
+      });
+      container.appendChild(nextBtn);
+
+      const startIdx = (currentPage - 1) * itemsPerPage + 1;
+      const endIdx = Math.min(currentPage * itemsPerPage, filteredComplaints.length);
+      info.textContent = `Showing ${filteredComplaints.length > 0 ? startIdx : 0} to ${endIdx} of ${filteredComplaints.length} reports`;
+    }
+
+    function updateMap(data){
+      // Clear existing markers
+      markers.forEach(m=>map.removeLayer(m));
+      markers=[];
+      
+      console.log(`DEBUG: Processing ${data.length} reports for map`);
+      
+      // Process all reports and check coordinates
+      data.forEach((c, index) => {
+        console.log(`Report ${index + 1}: ID=${c.id}, Lat=${c.latitude}, Lng=${c.longitude}, Status=${c.status}`);
+        
+        // Check if coordinates exist and are valid numbers
+        if (c.latitude !== null && c.longitude !== null && 
+            !isNaN(parseFloat(c.latitude)) && !isNaN(parseFloat(c.longitude))) {
+          
+          const lat = parseFloat(c.latitude);
+          const lng = parseFloat(c.longitude);
+          
+          // Validate coordinates are within reasonable bounds (Philippines area)
+          if (lat >= 4.0 && lat <= 21.0 && lng >= 116.0 && lng <= 127.0) {
+            
+            // Determine pin color based on status
+            let color;
+            const status = c.status.trim().toLowerCase();
+            
+            if (status === 'pending') {
+              color = '#ff9800'; // Orange for pending
+            } else if (status === 'in progress') {
+              color = '#2196f3'; // Blue for in progress
+            } else if (status === 'resolved') {
+              color = '#4caf50'; // Green for resolved
+            } else {
+              color = '#9e9e9e'; // Gray for unknown status
+            }
+            
+            console.log(`Creating marker for report ${c.id} at ${lat}, ${lng} with color ${color}`);
+            
+            try {
+              // Create a simple, reliable marker
+              const marker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                  html: `
+                    <div style="
+                      width: 25px;
+                      height: 25px;
+                      background-color: ${color};
+                      border: 3px solid white;
+                      border-radius: 50%;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                      position: relative;
+                    ">
+                      <div style="
+                        position: absolute;
+                        bottom: -8px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 0;
+                        height: 0;
+                        border-left: 6px solid transparent;
+                        border-right: 6px solid transparent;
+                        border-top: 8px solid ${color};
+                      "></div>
+                    </div>
+                  `,
+                  className: 'custom-marker',
+                  iconSize: [25, 33],
+                  iconAnchor: [12, 33],
+                  popupAnchor: [0, -33]
+                })
+              }).addTo(map);
+              
+              // Add popup with report details
+              marker.bindPopup(`
+                <div style="min-width:200px; font-family: Arial, sans-serif;">
+                  <h4 style="margin:0 0 10px; color:#1565c0; font-size:14px;">${c.title}</h4>
+                  <p style="margin:5px 0;"><strong>Status:</strong> <span style="color:${color}; font-weight:bold;">${c.status}</span></p>
+                  <p style="margin:5px 0;"><strong>Reporter:</strong> ${c.user}</p>
+                  <p style="margin:5px 0;"><strong>Area:</strong> ${c.area || 'N/A'}</p>
+                  <p style="margin:5px 0;"><strong>Barangay:</strong> ${c.barangay || 'N/A'}</p>
+                  <p style="margin:5px 0;"><strong>Date:</strong> ${new Date(c.created_at).toLocaleDateString()}</p>
+                  <p style="margin:5px 0; font-size:11px; color:#666;"><strong>Coordinates:</strong> ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+                </div>
+              `);
+              
+              markers.push(marker);
+              console.log(`Successfully created marker for report ${c.id}`);
+              
+            } catch (error) {
+              console.error(`Error creating marker for report ${c.id}:`, error);
+            }
+          } else {
+            console.log(`Report ${c.id} has invalid coordinates: ${lat}, ${lng}`);
+          }
+        } else {
+          console.log(`Report ${c.id} missing coordinates: lat=${c.latitude}, lng=${c.longitude}`);
+        }
+      });
+      
+      console.log(`DEBUG: Created ${markers.length} markers on map`);
+      
+      // Fit map to show all markers or set default view
+      if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+        console.log(`DEBUG: Map fitted to show ${markers.length} markers`);
+      } else {
+        // Set default view to Biliran area if no markers
+        map.setView([11.5411, 124.5405], 13);
+        console.log('DEBUG: No markers found, using default map view');
+      }
+    }
+
+    function updateStats(data){
+      const total = data.length;
+      const pending = data.filter(c=>c.status.trim().toLowerCase()==='pending').length;
+      const inProgress = data.filter(c=>c.status.trim().toLowerCase()==='in progress').length;
+      const resolved = data.filter(c=>c.status.trim().toLowerCase()==='resolved').length;
+      
+      console.log(`DEBUG: Updating stats - Total: ${total}, Pending: ${pending}, In Progress: ${inProgress}, Resolved: ${resolved}`);
+      
+      document.getElementById('totalReportsCount').textContent=total;
+      document.getElementById('pendingCount').textContent=pending;
+      document.getElementById('inProgressCount').textContent=inProgress;
+      document.getElementById('resolvedCount').textContent=resolved;
+    }
+
+    function showError(message){
+      let el = document.getElementById('errorNotification');
+      if(!el){ el=document.createElement('div'); el.id='errorNotification'; el.style.cssText='position:fixed;top:20px;right:20px;background:#f44336;color:white;padding:15px;border-radius:5px;z-index:1000;'; document.body.appendChild(el);}
+      el.innerHTML=`<i class="fas fa-exclamation-triangle"></i> ${message}`; el.style.display='block';
+      setTimeout(()=>{el.style.display='none';},5000);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', filterComplaints);
+
+
+
+    // Initialize dashboard
+    console.log('DEBUG: Initializing admin dashboard...');
+    
+    // Force map to refresh after a short delay
+    setTimeout(() => {
+      map.invalidateSize();
+      console.log('DEBUG: Map size invalidated');
+    }, 500);
+    
+    // Load initial data
+    loadComplaints();
+    updateLastUpdatedTime();
+    
+    // Set up periodic refresh
+    setInterval(loadComplaints, 10000); // Increased to 10 seconds
+
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden){ 
+        console.log('DEBUG: Page became visible, refreshing data...');
+        loadComplaints(); 
+      }
+    });
+    
+    // Add window resize handler for map
+    window.addEventListener('resize', function() {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    });
+
+    // Mobile menu functions
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.querySelector('.overlay');
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+
+    function closeSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.querySelector('.overlay');
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    }
+  </script>
+</body>
+</html>

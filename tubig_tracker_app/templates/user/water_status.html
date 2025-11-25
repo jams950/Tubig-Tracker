@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Status | Tubig Tracker</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+   <link rel="stylesheet" href="{% static 'css/user/water_status.css' %}">
+</head>
+<body>
+
+  <!-- SIDEBAR - FULL WIDTH -->
+  <div class="sidebar">
+    <div> 
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo">
+            <i class="fas fa-tint"></i>
+          </div>
+          <div class="system-name">Tubig Tracker</div>
+        </div>
+        <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9rem;">Water Management System</p>
+      </div>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'add_complaint' %}"><i class="fas fa-exclamation-circle"></i> Report Issue</a>
+        <a href="{% url 'my_reports' %}"><i class="fas fa-clipboard-list"></i> My Reports</a>
+
+        <a href="{% url 'water_status' %}" class="active"><i class="fas fa-map-marker-alt"></i> Water Status</a>
+        <a href="{% url 'my_report_summary' %}"><i class="fas fa-chart-bar"></i> My Report Summary</a>
+        <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
+        <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Settings</a>
+      </div>
+    </div>
+    <div class="logout-section">
+      <div class="user-info-sidebar">
+        <div class="user-avatar-sidebar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details-sidebar">
+          <h3>{{ user.username }}</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+      <div class="logout">
+        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="page-header">
+      <h1><i class="fas fa-map-marker-alt"></i> Water Status</h1>
+      <p class="subtitle">Current water supply situation in your area</p>
+    </div>
+
+    <!-- Status Summary Cards -->
+    <div class="status-summary">
+      <div class="summary-card">
+        <div class="summary-icon normal">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="summary-count" id="normalCount">0</div>
+        <div class="summary-label">Normal Supply</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon low">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="summary-count" id="lowCount">0</div>
+        <div class="summary-label">Low Pressure</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon critical">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="summary-count" id="criticalCount">0</div>
+        <div class="summary-label">No Water</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon maintenance">
+          <i class="fas fa-tools"></i>
+        </div>
+        <div class="summary-count" id="maintenanceCount">0</div>
+        <div class="summary-label">Maintenance</div>
+      </div>
+    </div>
+
+    <div class="status-container">
+      {% if water_statuses %}
+        <table>
+          <thead>
+            <tr>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for w in water_statuses %}
+            <tr>
+              <td>
+                <i class="fas fa-map-marker-alt" style="color: var(--primary); margin-right: 8px;"></i>
+                {{ w.location }}
+              </td>
+              <td>
+                {% if "normal" in w.status.lower %}
+                  <span class="status-badge status-normal">
+                    <i class="fas fa-check-circle"></i> {{ w.status }}
+                  </span>
+                {% elif "low" in w.status.lower %}
+                  <span class="status-badge status-low">
+                    <i class="fas fa-exclamation-triangle"></i> {{ w.status }}
+                  </span>
+                {% elif "critical" in w.status.lower or "no water" in w.status.lower %}
+                  <span class="status-badge status-critical">
+                    <i class="fas fa-times-circle"></i> {{ w.status }}
+                  </span>
+                {% elif "maintenance" in w.status.lower %}
+                  <span class="status-badge status-maintenance">
+                    <i class="fas fa-tools"></i> {{ w.status }}
+                  </span>
+                {% else %}
+                  {{ w.status }}
+                {% endif %}
+              </td>
+              <td>{{ w.updated_at }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="last-updated">
+          <i class="fas fa-sync-alt"></i> Last updated: {{ water_statuses.0.updated_at }}
+        </div>
+      {% else %}
+        <div class="no-data">
+          <i class="fas fa-tint-slash"></i>
+          <p>No water status data available at the moment.</p>
+          <p style="font-size: 0.9rem; color: var(--text-lighter);">Please check back later for updates.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    // Count status types for summary cards
+    document.addEventListener('DOMContentLoaded', function() {
+      const statuses = document.querySelectorAll('td:nth-child(2)');
+      let normalCount = 0;
+      let lowCount = 0;
+      let criticalCount = 0;
+      let maintenanceCount = 0;
+
+      statuses.forEach(td => {
+        const status = td.textContent.toLowerCase();
+        if (status.includes('normal')) {
+          normalCount++;
+        } else if (status.includes('low')) {
+          lowCount++;
+        } else if (status.includes('critical') || status.includes('no water')) {
+          criticalCount++;
+        } else if (status.includes('maintenance')) {
+          maintenanceCount++;
+        }
+      });
+
+      document.getElementById('normalCount').textContent = normalCount;
+      document.getElementById('lowCount').textContent = lowCount;
+      document.getElementById('criticalCount').textContent = criticalCount;
+      document.getElementById('maintenanceCount').textContent = maintenanceCount;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Report Summary | Tubig Tracker</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/user/my_report_summary.css' %}">
+  
+</head>
+<body>
+
+  <!-- SIDEBAR - FULL WIDTH -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo">
+            <i class="fas fa-tint"></i>
+          </div>
+          <div class="system-name">Tubig Tracker</div>
+        </div>
+        <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9rem;">Water Management System</p>
+      </div>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'add_complaint' %}"><i class="fas fa-exclamation-circle"></i> Report Issue</a>
+        <a href="{% url 'my_reports' %}"><i class="fas fa-clipboard-list"></i> My Reports</a>
+        <a href="{% url 'my_report_summary' %}" class="active"><i class="fas fa-chart-bar"></i> My Report Summary</a>
+        <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
+        <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Settings</a>
+      </div>
+    </div>
+    <div class="logout-section">
+      <div class="user-info-sidebar">
+        <div class="user-avatar-sidebar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details-sidebar">
+          <h3>{{ user.username|default:"User" }}</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+      <div class="logout">
+        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="page-header">
+      <h1><i class="fas fa-chart-bar"></i> My Report Summary</h1>
+      <p class="subtitle">Overview of your submitted complaints</p>
+    </div>
+
+    <div class="summary-container">
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="summary-card pending">
+          <div class="summary-icon pending">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="summary-count pending">{{ pending|default:0 }}</div>
+          <div class="summary-label">Pending Reports</div>
+        </div>
+        
+        <div class="summary-card in-progress">
+          <div class="summary-icon in-progress">
+            <i class="fas fa-cogs"></i>
+          </div>
+          <div class="summary-count in-progress">{{ in_progress|default:0 }}</div>
+          <div class="summary-label">In Progress</div>
+        </div>
+        
+        <div class="summary-card resolved">
+          <div class="summary-icon resolved">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="summary-count resolved">{{ resolved|default:0 }}</div>
+          <div class="summary-label">Resolved</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-header">
+          <div class="progress-title">Resolution Progress</div>
+          <div class="progress-percentage" id="progressPercentage">0%</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Summary Table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Total Reports</th>
+            <th>Percentage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="status-badge status-pending">
+                <i class="fas fa-clock"></i> Pending
+              </span>
+            </td>
+            <td>{{ pending|default:0 }}</td>
+            <td id="pendingPercentage">0%</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="status-badge status-in-progress">
+                <i class="fas fa-cogs"></i> In Progress
+              </span>
+            </td>
+            <td>{{ in_progress|default:0 }}</td>
+            <td id="inProgressPercentage">0%</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="status-badge status-resolved">
+                <i class="fas fa-check-circle"></i> Resolved
+              </span>
+            </td>
+            <td>{{ resolved|default:0 }}</td>
+            <td id="resolvedPercentage">0%</td>
+          </tr>
+          <tr style="background-color: var(--primary-light); font-weight: 600;">
+            <td>Total</td>
+            <td id="totalReports">0</td>
+            <td>100%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get values from template variables with defaults
+      const pending = parseInt('{{ pending|default:0 }}');
+      const inProgress = parseInt('{{ in_progress|default:0 }}');
+      const resolved = parseInt('{{ resolved|default:0 }}');
+      const total = pending + inProgress + resolved;
+      
+      // Update total in table
+      document.getElementById('totalReports').textContent = total;
+      
+      if (total > 0) {
+        // Calculate percentages
+        const pendingPercent = Math.round((pending / total) * 100);
+        const inProgressPercent = Math.round((inProgress / total) * 100);
+        const resolvedPercent = Math.round((resolved / total) * 100);
+        const progressPercent = Math.round((resolved / total) * 100);
+        
+        // Update percentages in table
+        document.getElementById('pendingPercentage').textContent = pendingPercent + '%';
+        document.getElementById('inProgressPercentage').textContent = inProgressPercent + '%';
+        document.getElementById('resolvedPercentage').textContent = resolvedPercent + '%';
+        
+        // Update progress bar
+        document.getElementById('progressPercentage').textContent = progressPercent + '%';
+        setTimeout(() => {
+          document.getElementById('progressFill').style.width = progressPercent + '%';
+        }, 100);
+      } else {
+        // Handle case when there are no reports
+        document.getElementById('pendingPercentage').textContent = '0%';
+        document.getElementById('inProgressPercentage').textContent = '0%';
+        document.getElementById('resolvedPercentage').textContent = '0%';
+        document.getElementById('progressPercentage').textContent = '0%';
+      }
+    });
+  </script>
+</body>
+</html>

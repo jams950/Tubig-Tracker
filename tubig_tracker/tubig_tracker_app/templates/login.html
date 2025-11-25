@@ -1,0 +1,836 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tubig Tracker | Water Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --water-dark: #0d47a1;
+            --water-blue: #1565c0;
+            --water-light: #42a5f5;
+            --water-lighter: #64b5f6;
+            --accent: #00acc1;
+            --success: #0277bd;
+            --light-bg: #e3f2fd;
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --shadow: 0 20px 60px rgba(13, 71, 161, 0.15);
+            --shadow-hover: 0 30px 80px rgba(13, 71, 161, 0.25);
+            --radius: 20px;
+            --transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Segoe UI", "Inter", sans-serif;
+            background: url('{% static "images/loginback.png" %}') center/cover no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background-attachment: scroll;
+                background-size: cover;
+                background-position: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                background-size: cover;
+                background-position: center top;
+            }
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(13, 71, 161, 0.7) 0%, rgba(21, 101, 192, 0.6) 50%, rgba(25, 118, 210, 0.5) 100%);
+            backdrop-filter: blur(5px);
+            z-index: -1;
+        }
+
+        /* Animated background elements */
+        .bg-decoration {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .bg-decoration:nth-child(1) {
+            width: 300px; height: 300px;
+            background: var(--water-blue);
+            top: -50px; left: -50px;
+        }
+
+        .bg-decoration:nth-child(2) {
+            width: 200px; height: 200px;
+            background: var(--water-light);
+            bottom: 50px; right: -50px;
+            animation-delay: 2s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(20px); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            perspective: 1000px;
+            margin: 0 auto;
+        }
+
+        /* MAIN SPLIT CONTAINER */
+        .auth-container {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 0;
+            border-radius: var(--radius);
+            box-shadow: 0 30px 80px rgba(13, 71, 161, 0.4), 0 15px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            background: transparent;
+            min-height: 700px;
+            animation: float 6s ease-in-out infinite;
+            transform: translateY(0);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* LEFT SIDE - BACKGROUND IMAGE WITH SUBTLE OVERLAY */
+        .auth-visual {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Back button */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 20px;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateX(-5px);
+        }
+
+        /* Subtle blue overlay */
+        .auth-visual::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(13, 71, 161, 0.1) 0%, rgba(21, 101, 192, 0.05) 100%);
+            z-index: 1;
+        }
+
+        .visual-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 50px 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            max-width: 90%;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .visual-icon {
+            width: 140px;
+            height: 140px;
+            margin-bottom: 25px;
+            animation: bounce 2s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
+        }
+
+        .visual-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .visual-title {
+            font-size: 60px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+            letter-spacing: -0.5px;
+        }
+
+        .visual-subtitle {
+            font-size: 18px;
+            opacity: 0.95;
+            line-height: 1.8;
+            max-width: 380px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .visual-description {
+            font-size: 20px;
+            opacity: 0.85;
+            line-height: 1.7;
+            max-width: 380px;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+        }
+
+        /* RIGHT SIDE - FORM */
+        .auth-form-container {
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(15px);
+        }
+
+        .form-header {
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease;
+            text-align: center;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-header-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo img {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(21, 101, 192, 0.3));
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--water-dark);
+            margin-bottom: 5px;
+            letter-spacing: -0.3px;
+        }
+
+        .form-subtitle {
+            font-size: 13px;
+            color: var(--water-blue);
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        /* FORM */
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--water-dark);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid #c5daf1;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            transition: var(--transition);
+            background: white;
+            font-family: inherit;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--water-light);
+            background: #f8fbfd;
+            box-shadow: 0 0 0 4px rgba(66, 165, 245, 0.15);
+        }
+
+
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--water-light);
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 2;
+            transition: var(--transition);
+        }
+
+        .password-toggle:hover {
+            color: var(--water-blue);
+            transform: scale(1.15);
+        }
+
+        /* BUTTONS */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #1565c0, #1976d2);
+            color: white;
+            margin-bottom: 20px;
+            margin-top: 15px;
+            box-shadow: 0 10px 30px rgba(21, 101, 192, 0.2);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 45px rgba(21, 101, 192, 0.35);
+            background: linear-gradient(135deg, #1155a8, #1565c0);
+        }
+
+        .btn-toggle {
+            background: linear-gradient(135deg, #0277bd, #00897b);
+            color: white;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(2, 119, 189, 0.2);
+        }
+
+        .btn-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 45px rgba(2, 119, 189, 0.35);
+            background: linear-gradient(135deg, #01579b, #00695c);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 22px 0;
+            color: #a0c4e0;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        /* SOCIAL LOGIN */
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid #c5daf1;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--water-blue);
+            font-size: 18px;
+            box-shadow: 0 5px 15px rgba(21, 101, 192, 0.08);
+        }
+
+        .social-btn:hover {
+            background: linear-gradient(135deg, #1565c0, #1976d2);
+            color: white;
+            border-color: #1565c0;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(21, 101, 192, 0.25);
+        }
+
+        /* REMEMBER & FORGOT */
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .form-row a {
+            color: var(--water-blue);
+            text-decoration: none;
+            font-weight: 800;
+            transition: var(--transition);
+        }
+
+        .form-row a:hover {
+            color: var(--water-dark);
+            text-decoration: underline;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #5a7d95;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .checkbox-label input {
+            accent-color: var(--water-blue);
+            cursor: pointer;
+        }
+
+        .auth-form-content {
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            padding: 0 50px;
+        }
+
+        .auth-form-content.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1400px) {
+            .container { max-width: 1100px; padding: 0 20px; }
+            .auth-container { min-height: 650px; }
+            .visual-title { font-size: 52px; }
+            .visual-subtitle { font-size: 17px; }
+            .visual-description { font-size: 19px; }
+        }
+        
+        @media (max-width: 1200px) {
+            .container { max-width: 950px; padding: 0 15px; }
+            .auth-container { min-height: 600px; }
+            .visual-title { font-size: 46px; }
+            .visual-subtitle { font-size: 16px; }
+            .visual-description { font-size: 17px; }
+            .auth-visual { padding: 50px 35px; }
+            .auth-form-container { padding: 50px 45px; }
+        }
+        
+        @media (max-width: 992px) {
+            .container { max-width: 100%; padding: 0 10px; }
+            .auth-container { grid-template-columns: 1fr 1fr; min-height: 550px; }
+            .auth-visual { padding: 40px 25px; }
+            .auth-form-container { padding: 40px 30px; }
+            .visual-title { font-size: 36px; }
+            .visual-subtitle { font-size: 14px; }
+            .visual-description { font-size: 15px; }
+            .logo { width: 100px; height: 100px; }
+            .form-title { font-size: 22px; }
+            .form-control { padding: 14px 16px; font-size: 15px; }
+            .btn { padding: 14px; font-size: 15px; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 8px; }
+            .container { padding: 0 5px; }
+            .auth-container { grid-template-columns: 1fr; min-height: auto; border-radius: 12px; }
+            .auth-visual { padding: 25px 15px; min-height: 200px; order: 1; }
+            .auth-form-container { padding: 25px 15px; order: 2; }
+            .back-button { top: 10px; left: 10px; width: 35px; height: 35px; font-size: 14px; }
+            .visual-icon { width: 70px; height: 70px; margin-bottom: 15px; }
+            .visual-title { font-size: 22px; }
+            .visual-subtitle { font-size: 12px; }
+            .visual-description { font-size: 11px; padding: 10px; }
+            .visual-content { padding: 20px 10px; }
+            .form-header-logo { gap: 8px; }
+            .logo { width: 60px; height: 60px; }
+            .form-title { font-size: 16px; }
+            .form-subtitle { font-size: 9px; }
+            .auth-form-content { padding: 0; }
+            .form-control { padding: 12px 14px; font-size: 13px; }
+            .btn { padding: 12px; font-size: 13px; }
+            .social-btn { width: 35px; height: 35px; font-size: 14px; }
+            .field-label { font-size: 11px; }
+            .divider { font-size: 10px; margin: 12px 0; }
+            .form-row { font-size: 11px; flex-direction: column; gap: 8px; align-items: flex-start; }
+        }
+        
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .auth-container { border-radius: 8px; }
+            .auth-visual { padding: 20px 10px; min-height: 180px; }
+            .auth-form-container { padding: 20px 10px; }
+            .visual-content { padding: 15px 8px; }
+            .visual-icon { width: 50px; height: 50px; margin-bottom: 10px; }
+            .visual-title { font-size: 18px; }
+            .visual-subtitle { font-size: 10px; }
+            .visual-description { font-size: 9px; padding: 8px; }
+            .logo { width: 45px; height: 45px; }
+            .form-title { font-size: 14px; }
+            .form-subtitle { font-size: 8px; }
+            .field-label { font-size: 10px; }
+            .form-control { padding: 10px 12px; font-size: 12px; }
+            .btn { padding: 10px; font-size: 12px; }
+            .social-login { gap: 8px; }
+            .social-btn { width: 30px; height: 30px; font-size: 12px; }
+            .divider { font-size: 9px; margin: 10px 0; }
+            .form-row { font-size: 10px; }
+            .password-toggle { right: 12px; font-size: 14px; }
+        }
+        
+        @media (max-width: 360px) {
+            .auth-visual { padding: 15px 8px; min-height: 150px; }
+            .auth-form-container { padding: 15px 8px; }
+            .visual-content { padding: 12px 6px; }
+            .visual-title { font-size: 16px; }
+            .form-title { font-size: 12px; }
+            .logo { width: 35px; height: 35px; }
+            .visual-icon { width: 40px; height: 40px; }
+            .form-control { padding: 8px 10px; font-size: 11px; }
+            .btn { padding: 8px; font-size: 11px; }
+            .social-btn { width: 25px; height: 25px; font-size: 10px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Background decorations -->
+  <!-- Background decorations --> 
+<div class="bg-decoration"></div>
+<div class="bg-decoration"></div>
+
+<div class="container">
+    <div class="auth-container">
+
+        <!-- ========== LEFT SIDE - VISUAL ========== -->
+        <div class="auth-visual">
+            <button class="back-button" onclick="goBack()" title="Go Back">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="visual-content">
+                <div class="visual-icon" id="visualIcon">
+                    <img src="{% static 'images/logo.png' %}" alt="Tubig Tracker Logo">
+                </div>
+                <h2 class="visual-title" id="visualTitle">Log In</h2>
+                <p class="visual-subtitle" id="visualSubtitle">Welcome back to your water management hub</p>
+                <p class="visual-description" id="visualDescription">
+                    Access real-time water consumption analytics, monitor distribution systems, 
+                    and optimize resource allocation with our intelligent tracking platform.
+                </p>
+            </div>
+        </div>
+
+        <!-- ========== RIGHT SIDE - FORM ========== -->
+        <div class="auth-form-container">
+
+            <!-- LOGIN FORM -->
+            <div class="auth-form-content active" id="loginForm">
+                <div class="form-header">
+                    <div class="form-header-logo">
+                        <div class="logo">
+                            <img src="{% static 'images/logo.png' %}" alt="Tubig Tracker Logo">
+                        </div>
+                        <div>
+                            <h1 class="form-title">Tubig Tracker</h1>
+                            <p class="form-subtitle">WATER MANAGEMENT SYSTEM</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}" style="padding: 12px; margin-bottom: 20px; border-radius: 8px; {% if message.tags == 'error' %}background: #ffebee; color: #c62828; border: 1px solid #ef5350;{% else %}background: #e8f5e9; color: #2e7d32; border: 1px solid #66bb6a;{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- FIXED LOGIN FORM -->
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label class="field-label">Email or Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter your email or username" required>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <label class="field-label">Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox"> Remember me
+                        </label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Log In
+                    </button>
+
+                    <div class="divider">OR CONTINUE WITH</div>
+
+                    <div class="social-login">
+                        <button type="button" class="social-btn" title="Google">
+                            <i class="fab fa-google"></i>
+                        </button>
+                        <button type="button" class="social-btn" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </button>
+                        <button type="button" class="social-btn" title="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </button>
+                        <button type="button" class="social-btn" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn btn-toggle" onclick="switchForm('register')">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div class="auth-form-content" id="registerForm">
+                <div class="form-header">
+                    <div class="form-header-logo">
+                        <div>
+                            <h1 class="form-title">Tubig Tracker</h1>
+                            <p class="form-subtitle">CREATE ACCOUNT</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" action="{% url 'register' %}">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label class="field-label">Full Name</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="field-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="Enter your email address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="field-label">Role</label>
+                        <select name="role" class="form-control" required>
+                            <option value="" disabled selected>Select your role</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="field-label">Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="password" id="registerPassword" class="form-control" placeholder="Create a password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="field-label">Confirm Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="confirm_password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" required> I agree to terms
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-login">
+                        <i class="fas fa-user-check"></i> Register
+                    </button>
+
+                    <div class="divider">OR SIGN UP WITH</div>
+
+                    <div class="social-login">
+                        <button type="button" class="social-btn" title="Google">
+                            <i class="fab fa-google"></i>
+                        </button>
+                        <button type="button" class="social-btn" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </button>
+                        <button type="button" class="social-btn" title="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </button>
+                        <button type="button" class="social-btn" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn btn-toggle" onclick="switchForm('login')">
+                        <i class="fas fa-sign-in-alt"></i> Back to Log In
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchForm(form) {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const visualTitle = document.getElementById('visualTitle');
+        const visualSubtitle = document.getElementById('visualSubtitle');
+        const visualDescription = document.getElementById('visualDescription');
+
+        if (form === 'register') {
+            loginForm.classList.remove('active');
+            registerForm.classList.add('active');
+            visualTitle.textContent = 'Create Account';
+            visualSubtitle.textContent = 'Join our water management community';
+            visualDescription.textContent =
+                'Set up your account to start monitoring water usage, generate detailed reports, and analyze patterns.';
+        } else {
+            registerForm.classList.remove('active');
+            loginForm.classList.add('active');
+            visualTitle.textContent = 'Log In';
+            visualSubtitle.textContent = 'Welcome back to your water management hub';
+            visualDescription.textContent =
+                'Access real-time water consumption analytics and monitor distribution systems.';
+        }
+    }
+
+    function togglePassword(id) {
+        const input = document.getElementById(id);
+        const icon = event.target.closest('.password-toggle').querySelector('i');
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        }
+    }
+
+    function goBack() {
+        window.history.back();
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Dashboard</title>
+</head>
+<body>
+    <h1>Admin Dashboard Test</h1>
+    
+    <div>
+        <h2>Stats</h2>
+        <p>Total Reports: <span id="totalReportsCount">0</span></p>
+        <p>Pending: <span id="pendingCount">0</span></p>
+        <p>In Progress: <span id="inProgressCount">0</span></p>
+        <p>Resolved: <span id="resolvedCount">0</span></p>
+    </div>
+    
+    <div>
+        <h2>Reports Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Title</th>
+                    <th>Area</th>
+                    <th>Barangay</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="reportsTableBody">
+                <tr><td colspan="7">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="paginationContainer"></div>
+    <div id="paginationInfo"></div>
+    
+    <script>
+        // Test data
+        const testData = [
+            {
+                id: 1,
+                user: 'testuser',
+                title: 'Water Supply Issue',
+                area: 'Water Supply',
+                barangay: 'Centro',
+                status: 'Pending',
+                created_at: '2024-01-01 10:00:00'
+            },
+            {
+                id: 2,
+                user: 'testuser',
+                title: 'Pipe Burst',
+                area: 'Infrastructure',
+                barangay: 'Poblacion',
+                status: 'In Progress',
+                created_at: '2024-01-02 11:00:00'
+            }
+        ];
+        
+        function updateStats(data) {
+            const total = data.length;
+            const pending = data.filter(c => c.status.trim().toLowerCase() === 'pending').length;
+            const inProgress = data.filter(c => c.status.trim().toLowerCase() === 'in progress').length;
+            const resolved = data.filter(c => c.status.trim().toLowerCase() === 'resolved').length;
+            
+            console.log(`Stats - Total: ${total}, Pending: ${pending}, In Progress: ${inProgress}, Resolved: ${resolved}`);
+            
+            document.getElementById('totalReportsCount').textContent = total;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('inProgressCount').textContent = inProgress;
+            document.getElementById('resolvedCount').textContent = resolved;
+        }
+        
+        function updateTable(data) {
+            const tbody = document.getElementById('reportsTableBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No reports found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.map(c => `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.user}</td>
+                    <td>${c.title}</td>
+                    <td>${c.area || 'N/A'}</td>
+                    <td>${c.barangay || 'N/A'}</td>
+                    <td>${c.status}</td>
+                    <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Test the functions
+        console.log('Testing with sample data...');
+        updateStats(testData);
+        updateTable(testData);
+        
+        // Test API call
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/all-complaints/');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('API Response:', data);
+                    updateStats(data);
+                    updateTable(data);
+                } else {
+                    console.error('API Error:', response.status);
+                }
+            } catch (error) {
+                console.error('Fetch Error:', error);
+            }
+        }
+        
+        // Uncomment to test API when server is running
+        // testAPI();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1438 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Biliran Reports Map — Admin</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/admin/admin_manage_reports.css' %}">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --ocean-deep: #0a2463;
+    --ocean-blue: #1e88e5;
+    --water-light: #42a5f5;
+    --wave-cyan: #00bcd4;
+    --foam-white: #e3f2fd;
+    --text-dark: #1a237e;
+    --text-light: #546e7a;
+    --success: #00897b;
+    --warning: #fb8c00;
+    --danger: #e53935;
+    --shadow: rgba(10, 36, 99, 0.1);
+    --shadow-hover: rgba(10, 36, 99, 0.2);
+    --radius: 16px;
+    --radius-sm: 8px;
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    min-height: 100vh;
+    display: flex;
+    transition: var(--transition);
+}
+
+/* ENHANCED SIDEBAR - LARGER */
+.sidebar {
+    width: 450px;
+    background: linear-gradient(180deg, var(--ocean-deep) 0%, var(--ocean-blue) 100%);
+    color: white;
+    padding: 0;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    transition: var(--transition);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 45px 35px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    background: linear-gradient(180deg, var(--ocean-deep) 0%, var(--ocean-blue) 100%);
+    flex-shrink: 0;
+}
+
+.logo {
+    width: 200px;
+    height: 200px;
+    background: transparent;
+    border-radius: 20px;
+    padding: 12px;
+    animation: float 3s ease-in-out infinite;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.sidebar-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #fff, var(--wave-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav {
+    padding: 35px 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.nav a {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 45px 30px;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    font-weight: 600;
+    font-size: 1.5rem;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: var(--wave-cyan);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.nav a:hover, .nav a.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: translateX(8px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav a:hover::before, .nav a.active::before {
+    transform: scaleY(1);
+}
+
+.nav a i {
+    font-size: 2rem;
+    width: 35px;
+    text-align: center;
+}
+
+/* MAIN CONTENT - ADJUSTED FOR LARGER SIDEBAR */
+.main-content {
+    margin-left: 450px;
+    padding: 40px;
+    width: calc(100% - 450px);
+    min-height: 100vh;
+    transition: var(--transition);
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* TOP NAVIGATION */
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.spacer {
+    flex: 1;
+}
+
+/* ENHANCED PAGE HEADER */
+.page-header {
+    background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+    padding: 40px;
+    border-radius: var(--radius);
+    color: white;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px var(--shadow-hover);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.header-left {
+    position: relative;
+    z-index: 1;
+}
+
+.header-left h1 {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 700;
+}
+
+.subtitle {
+    opacity: 0.9;
+    font-size: 1.2rem;
+    font-weight: 400;
+}
+
+/* ENHANCED MAP CONTAINER */
+.map-container {
+    background: white;
+    border-radius: var(--radius);
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 8px 25px var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+    border: 1px solid var(--border);
+}
+
+.map-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px var(--shadow-hover);
+}
+
+#map {
+    height: 500px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ENHANCED REPORTS SECTION */
+.reports-section {
+    background: white;
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 40px;
+    box-shadow: 0 8px 25px var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.section-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid var(--foam-white);
+}
+
+.section-header h2 {
+    color: var(--text-dark);
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 600;
+}
+
+/* ENHANCED REPORTS GRID */
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 25px;
+}
+
+/* ENHANCED REPORT CARD */
+.report-card {
+    background: white;
+    border: 2px solid var(--foam-white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px var(--shadow);
+    position: relative;
+}
+
+.report-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px var(--shadow-hover);
+    border-color: var(--water-light);
+}
+
+.report-card.updating {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* ENHANCED CARD HEADER */
+.card-header {
+    background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan));
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.card-id {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.status-display {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    min-width: 100px;
+    text-align: center;
+}
+
+.status-pending {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.status-inprogress {
+    background: linear-gradient(135deg, #2196f3, #0d47a1);
+    color: white;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.status-resolved {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: white;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* ENHANCED CARD BODY */
+.card-body {
+    padding: 25px;
+}
+
+.info-item {
+    margin-bottom: 15px;
+    font-size: 1rem;
+    color: var(--text-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.info-item strong {
+    color: var(--ocean-blue);
+    font-weight: 600;
+    min-width: 120px;
+}
+
+/* ENHANCED REPORT IMAGE */
+.report-image {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+    border-radius: var(--radius-sm);
+    margin-top: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px var(--shadow);
+    border: 2px solid var(--foam-white);
+}
+
+.report-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px var(--shadow-hover);
+    border-color: var(--water-light);
+}
+
+.no-image {
+    color: var(--text-light);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* ENHANCED STATUS UPDATE FORM */
+.status-update-form {
+    padding: 20px 25px;
+    background: var(--foam-white);
+    border-top: 2px solid #e0e0e0;
+}
+
+.status-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.status-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border: 2px solid #e0e0e0;
+    background: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    transition: var(--transition);
+    color: var(--text-dark);
+    text-align: center;
+}
+
+.status-btn:hover {
+    border-color: var(--ocean-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.status-btn.active {
+    background: var(--ocean-blue);
+    color: white;
+    border-color: var(--ocean-blue);
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+}
+
+.status-update-form textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: var(--radius-sm);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    resize: vertical;
+    transition: var(--transition);
+    background: white;
+    min-height: 80px;
+}
+
+.status-update-form textarea:focus {
+    outline: none;
+    border-color: var(--ocean-blue);
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+}
+
+.btn-update {
+    width: 100%;
+    margin-top: 15px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, var(--ocean-blue), var(--water-light));
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-update:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(30, 136, 229, 0.4);
+}
+
+.btn-update.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-update.loading::after {
+    content: ' ⟳';
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ENHANCED CARD FOOTER */
+.card-footer {
+    padding: 20px 25px;
+    background: white;
+    display: flex;
+    gap: 12px;
+    border-top: 2px solid var(--foam-white);
+}
+
+.btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Poppins', sans-serif;
+    min-width: 120px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--ocean-blue), var(--water-light));
+    color: white;
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(30, 136, 229, 0.4);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, var(--danger), #c62828);
+    color: white;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(229, 57, 53, 0.4);
+}
+
+/* ENHANCED NO REPORTS MESSAGE */
+.no-reports {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--text-light);
+    grid-column: 1 / -1;
+}
+
+.no-reports i {
+    font-size: 80px;
+    margin-bottom: 25px;
+    opacity: 0.4;
+    color: var(--ocean-blue);
+}
+
+.no-reports h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+}
+
+.no-reports p {
+    font-size: 1.1rem;
+}
+
+/* ENHANCED NOTIFICATION */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 20px 25px;
+    border-radius: var(--radius);
+    color: white;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1rem;
+    min-width: 300px;
+}
+
+@keyframes slideIn {
+    from { 
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to { 
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification.success {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #f44336, #ef5350);
+}
+
+/* ENHANCED IMAGE MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: zoomIn 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes zoomIn {
+    from { 
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    font-size: 48px;
+    font-weight: 300;
+    color: white;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+/* ENHANCED FOOTER */
+footer {
+    text-align: center;
+    padding: 25px;
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 1200px) {
+    .sidebar {
+        width: 380px;
+    }
+    
+    .main-content {
+        margin-left: 380px;
+        width: calc(100% - 380px);
+        padding: 30px;
+    }
+    
+    .nav a {
+        padding: 35px 25px;
+        font-size: 1.3rem;
+    }
+    
+    .reports-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .sidebar {
+        width: 320px;
+    }
+    
+    .main-content {
+        margin-left: 320px;
+        width: calc(100% - 320px);
+        padding: 25px;
+    }
+    
+    .page-header h1 {
+        font-size: 2.2rem;
+    }
+    
+    .reports-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 320px;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+
+    .page-header {
+        padding: 30px;
+    }
+
+    .header-left h1 {
+        font-size: 2rem;
+    }
+
+    #map {
+        height: 400px;
+    }
+
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-footer {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .status-buttons {
+        flex-direction: column;
+    }
+
+    .status-btn {
+        width: 100%;
+    }
+
+    .notification {
+        left: 20px;
+        right: 20px;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 15px;
+    }
+    
+    .page-header {
+        padding: 25px 20px;
+    }
+
+    .header-left h1 {
+        font-size: 1.8rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    #map {
+        height: 350px;
+    }
+
+    .reports-section {
+        padding: 25px 20px;
+    }
+
+    .section-header h2 {
+        font-size: 1.6rem;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .info-item {
+        font-size: 0.9rem;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .info-item strong {
+        min-width: auto;
+    }
+
+    .notification {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+        font-size: 0.9rem;
+        padding: 15px 20px;
+    }
+
+    .modal-close {
+        top: 15px;
+        right: 15px;
+        font-size: 36px;
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav a {
+        padding: 25px 20px;
+        font-size: 1.1rem;
+    }
+    
+    .nav a i {
+        font-size: 1.5rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.6rem;
+    }
+    
+    .card p {
+        font-size: 2rem;
+    }
+    
+    .reports-table th,
+    .reports-table td {
+        padding: 14px 10px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+    background: var(--ocean-blue);
+    color: white;
+    border: none;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 15px var(--shadow-hover);
+    transition: var(--transition);
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--ocean-deep);
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Overlay for mobile menu */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--foam-white);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--ocean-blue);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--ocean-deep);
+}
+
+/* Leaflet Popup Custom Styling */
+.leaflet-popup-content-wrapper {
+    border-radius: var(--radius);
+    box-shadow: 0 8px 25px var(--shadow-hover);
+}
+
+.leaflet-popup-content {
+    font-family: 'Poppins', sans-serif;
+}
+
+.leaflet-popup-content h4 {
+    color: var(--ocean-blue);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.leaflet-popup-content p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+.water-marker-3d {
+    animation: pinFloat 3s ease-in-out infinite, pinGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pinFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-3px); }
+}
+
+@keyframes pinGlow {
+    0% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.8)); }
+}
+
+.water-marker {
+    animation: markerPulse 2s ease-in-out infinite;
+}
+
+@keyframes markerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Tubig Tracker</h2>
+      </div>
+      <div class="nav">
+        <a href="{% url 'admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'view_users' %}"><i class="fas fa-users"></i> User Management</a>
+        <a href="{% url 'admin_manage_reports' %}" class="active"><i class="fas fa-file-alt"></i> Manage Reports</a>
+       
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Overlay -->
+  <div class="overlay" onclick="closeSidebar()"></div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="top-nav"><div class="spacer"></div></div>
+
+    <div class="page-header">
+      <div class="header-left">
+        <h1><i class="fas fa-file-alt"></i> Water System Reports Management</h1>
+        <p class="subtitle">Monitor and manage all water-related reports across Biliran municipalities</p>
+      </div>
+    </div>
+
+    <div class="map-container"><div id="map"></div></div>
+
+    <div class="reports-section">
+      <div class="section-header">
+        <h2><i class="fas fa-list"></i> All Water Reports</h2>
+      </div>
+      <div class="reports-grid">
+        {% for report in reports %}
+        <div class="report-card" data-report-id="{{ report.id }}">
+          <div class="card-header">
+            <div class="card-id">#{{ report.id }}</div>
+            <span class="status-display {% if report.status == 'Pending' %}status-pending{% elif report.status == 'In Progress' %}status-inprogress{% elif report.status == 'Resolved' %}status-resolved{% endif %}">{{ report.status }}</span>
+          </div>
+          <div class="card-body">
+            <div class="info-item"><strong>Reporter:</strong> {% if report.reporter %}{{ report.reporter.username }}{% else %}Unknown{% endif %}</div>
+            <div class="info-item"><strong>Issue Type:</strong> {% if report.issue_type %}{{ report.issue_type }}{% else %}N/A{% endif %}</div>
+            <div class="info-item"><strong>Location:</strong> {% if report.location %}{{ report.location }}{% else %}N/A{% endif %}</div>
+            <div class="info-item"><strong>Date:</strong> {{ report.created_at|date:"M d, Y H:i" }}</div>
+            <div class="info-item">
+              <strong>Image:</strong>
+              {% if report.image %}
+              <img src="{{ report.image.url }}" alt="Report Image" class="report-image" onclick="event.stopPropagation(); openModal(this)">
+              {% else %}<span class="no-image">No Image Available</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- STATUS UPDATE FORM - WITH AJAX -->
+          <form class="status-update-form" data-report-id="{{ report.id }}" onclick="event.stopPropagation();">
+            {% csrf_token %}
+            <div class="status-buttons">
+              <button type="button" class="status-btn {% if report.status == 'Pending' %}active{% endif %}" data-status="Pending">Pending</button>
+              <button type="button" class="status-btn {% if report.status == 'In Progress' %}active{% endif %}" data-status="In Progress">In Progress</button>
+              <button type="button" class="status-btn {% if report.status == 'Resolved' %}active{% endif %}" data-status="Resolved">Resolved</button>
+            </div>
+            <textarea name="remarks" placeholder="Add remarks..." rows="1">{{ report.remarks }}</textarea>
+            <button type="submit" class="btn-update">Update</button>
+          </form>
+
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="showReportDetails({{ report.id }}, '{{ report.title }}', '{{ report.reporter.username|default:"Unknown" }}', '{{ report.location|default:"N/A" }}', '{{ report.created_at|date:"M d, Y H:i" }}', '{{ report.status }}')"><i class="fas fa-eye"></i> View Details</button>
+            <button class="btn btn-delete" onclick="showDeleteModal({{ report.id }}, '{{ report.title }}')"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+        {% empty %}
+        <div class="no-reports">
+          <i class="fas fa-inbox"></i>
+          <h3>No reports found</h3>
+          <p>There are currently no water system reports to display.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <footer>© 2025 TUBIG Tracker | Manage Reports</footer>
+  </div>
+
+  <!-- Image Modal -->
+  <div id="imageModal" class="modal">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <img class="modal-content" id="modalImage">
+  </div>
+
+  <!-- Report Details Modal -->
+  <div id="reportDetailsModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; background: white; border-radius: 16px; padding: 0;">
+      <div style="background: linear-gradient(135deg, var(--ocean-blue), var(--wave-cyan)); color: white; padding: 25px; border-radius: 16px 16px 0 0;">
+        <h2 id="reportDetailsTitle" style="margin: 0; font-size: 1.5rem;"><i class="fas fa-file-alt"></i> Report Details</h2>
+        <button class="close" onclick="closeReportModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;">&times;</button>
+      </div>
+      <div style="padding: 25px;">
+        <div id="reportDetailsContent"></div>
+        <div style="text-align: center; margin-top: 20px;">
+          <button class="btn btn-primary" onclick="closeReportModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px; background: white; border-radius: 16px; padding: 0;">
+      <div style="background: linear-gradient(135deg, var(--danger), #c62828); color: white; padding: 25px; border-radius: 16px 16px 0 0;">
+        <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h2>
+      </div>
+      <div style="padding: 25px;">
+        <p id="deleteMessage" style="margin-bottom: 25px; color: var(--text-dark); font-size: 1.1rem;"></p>
+        <div style="display: flex; gap: 15px; justify-content: flex-end;">
+          <button class="btn" style="background: #6c757d; color: white;" onclick="closeDeleteModal()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button class="btn btn-delete" id="confirmDeleteBtn">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Initialize map
+    var map = L.map('map').setView([11.6055, 124.6308], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    var reportMarkers = {};
+    
+    // Add markers only for reports with valid coordinates
+    {% for report in reports %}
+    {% if report.latitude and report.longitude %}
+    try {
+      var color = "{{ report.status }}"==="Resolved"?"#4caf50":"{{ report.status }}"==="In Progress"?"#2196f3":"#ff9800";
+      var lat = parseFloat("{{ report.latitude }}");
+      var lng = parseFloat("{{ report.longitude }}");
+      
+      if (!isNaN(lat) && !isNaN(lng)) {
+        var marker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            html: `
+              <div class="water-marker-3d" style="
+                position: relative;
+                width: 30px;
+                height: 40px;
+                transform: translateX(-15px) translateY(-40px);
+              ">
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 50%;
+                  width: 30px;
+                  height: 30px;
+                  background: linear-gradient(135deg, ${color} 0%, ${color}dd 50%, ${color}aa 100%);
+                  border-radius: 50% 50% 50% 0;
+                  transform: translateX(-50%) rotate(-45deg);
+                  box-shadow: 
+                    0 4px 8px rgba(0,0,0,0.3),
+                    inset -2px -2px 4px rgba(0,0,0,0.2),
+                    inset 2px 2px 4px rgba(255,255,255,0.3);
+                  border: 2px solid white;
+                "></div>
+                <div style="
+                  position: absolute;
+                  top: 3px;
+                  left: 50%;
+                  transform: translateX(-50%) rotate(-45deg);
+                  width: 16px;
+                  height: 16px;
+                  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
+                  border-radius: 50%;
+                  z-index: 2;
+                "></div>
+                <div style="
+                  position: absolute;
+                  bottom: -5px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  width: 8px;
+                  height: 8px;
+                  background: rgba(0,0,0,0.3);
+                  border-radius: 50%;
+                  filter: blur(2px);
+                "></div>
+              </div>
+            `,
+            className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
+          })
+        }).addTo(map);
+
+        var popupContent = `
+          <div style="min-width:250px;">
+            <h4>{{ report.title }}</h4>
+            <p><strong>Status:</strong> <span style="color:${color};font-weight:bold;">{{ report.status }}</span></p>
+            <p><strong>Location:</strong> {% if report.location %}{{ report.location }}{% else %}N/A{% endif %}</p>
+            <p><strong>Reporter:</strong> {% if report.reporter %}{{ report.reporter.username }}{% else %}Anonymous{% endif %}</p>
+            <p><strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
+            <p><strong>Date:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
+            {% if report.image %}
+              <img src="{{ report.image.url }}" width="200px" style="margin-top:5px;border-radius:6px;">
+            {% endif %}
+          </div>`;
+        marker.bindPopup(popupContent);
+        reportMarkers[{{ report.id }}] = marker;
+        console.log('Added marker for report {{ report.id }} at', lat, lng);
+      } else {
+        console.warn('Invalid coordinates for report {{ report.id }}:', "{{ report.latitude }}", "{{ report.longitude }}");
+      }
+    } catch (error) {
+      console.error('Error adding marker for report {{ report.id }}:', error);
+    }
+    {% endif %}
+    {% endfor %}
+    
+    // Log total markers added
+    console.log('Total markers added:', Object.keys(reportMarkers).length);
+
+    function focusMarker(id){
+      if(reportMarkers[id]){
+        map.setView(reportMarkers[id].getLatLng(),15);
+        reportMarkers[id].openPopup();
+      }
+    }
+
+    function openModal(img){
+      document.getElementById("imageModal").style.display='flex';
+      document.getElementById("modalImage").src=img.src;
+    }
+    
+    function closeModal(){ 
+      document.getElementById("imageModal").style.display='none'; 
+    }
+
+    window.onclick=function(e){ 
+      if(e.target===document.getElementById("imageModal")) closeModal(); 
+    }
+
+    // ===== HELPER FUNCTIONS FOR STATUS & MAP UPDATES =====
+    
+    function getStatusColor(status) {
+      if (status === 'Resolved') return '#2ecc71'; // Green
+      if (status === 'In Progress') return '#3498db'; // Blue
+      return '#f39c12'; // Orange for Pending
+    }
+
+    function updateMarkerColor(reportId, newStatus) {
+      if (reportMarkers[reportId]) {
+        const newColor = getStatusColor(newStatus);
+        const marker = reportMarkers[reportId];
+        
+        marker.setIcon(L.divIcon({
+          html: `
+            <div class="water-marker-3d" style="
+              position: relative;
+              width: 30px;
+              height: 40px;
+              transform: translateX(-15px) translateY(-40px);
+            ">
+              <div style="
+                position: absolute;
+                top: 0;
+                left: 50%;
+                width: 30px;
+                height: 30px;
+                background: linear-gradient(135deg, ${newColor} 0%, ${newColor}dd 50%, ${newColor}aa 100%);
+                border-radius: 50% 50% 50% 0;
+                transform: translateX(-50%) rotate(-45deg);
+                box-shadow: 
+                  0 4px 8px rgba(0,0,0,0.3),
+                  inset -2px -2px 4px rgba(0,0,0,0.2),
+                  inset 2px 2px 4px rgba(255,255,255,0.3);
+                border: 2px solid white;
+              "></div>
+              <div style="
+                position: absolute;
+                top: 3px;
+                left: 50%;
+                transform: translateX(-50%) rotate(-45deg);
+                width: 16px;
+                height: 16px;
+                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%);
+                border-radius: 50%;
+                z-index: 2;
+              "></div>
+              <div style="
+                position: absolute;
+                bottom: -5px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 8px;
+                height: 8px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 50%;
+                filter: blur(2px);
+              "></div>
+            </div>
+          `,
+          className:'water-marker-3d', iconSize:[30,40], iconAnchor:[15,40]
+        }));
+      }
+    }
+
+    // ===== STATUS BUTTON SELECTION =====
+    
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const form = this.closest('.status-update-form');
+        form.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // ===== FORM SUBMISSION WITH AJAX =====
+    
+    document.querySelectorAll('.status-update-form').forEach(form => {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const reportId = this.dataset.reportId;
+        const activeBtn = this.querySelector('.status-btn.active');
+        const status = activeBtn ? activeBtn.dataset.status : 'Pending';
+        const remarks = this.querySelector('textarea[name="remarks"]').value;
+        const csrfToken = this.querySelector('[name="csrfmiddlewaretoken"]').value;
+        
+        const submitBtn = this.querySelector('.btn-update');
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        
+        try {
+          const response = await fetch(`/update-report-status/${reportId}/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+              status: status,
+              remarks: remarks
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          
+          // Update the status display on card
+          const card = document.querySelector(`[data-report-id="${reportId}"]`);
+          const statusDisplay = card.querySelector('.status-display');
+          statusDisplay.textContent = status;
+          statusDisplay.className = 'status-display ' + 
+            (status === 'Pending' ? 'status-pending' : 
+             status === 'In Progress' ? 'status-inprogress' : 
+             'status-resolved');
+
+          // Update map marker color
+          updateMarkerColor(reportId, status);
+
+          showNotification('✓ Report updated successfully!', 'success');
+          
+          // Trigger dashboard refresh
+          window.parent.postMessage({
+            type: 'REPORT_UPDATED',
+            reportId: reportId,
+            status: status
+          }, '*');
+
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('✗ Failed to update report', 'error');
+        } finally {
+          submitBtn.classList.remove('loading');
+          submitBtn.disabled = false;
+        }
+      });
+    });
+
+    // Show notification
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    function showReportDetails(id, title, reporter, location, date, status) {
+      document.getElementById('reportDetailsContent').innerHTML = `
+        <div style="margin-bottom: 15px;"><strong>Report ID:</strong> #${id}</div>
+        <div style="margin-bottom: 15px;"><strong>Title:</strong> ${title}</div>
+        <div style="margin-bottom: 15px;"><strong>Reporter:</strong> ${reporter}</div>
+        <div style="margin-bottom: 15px;"><strong>Location:</strong> ${location}</div>
+        <div style="margin-bottom: 15px;"><strong>Date:</strong> ${date}</div>
+        <div style="margin-bottom: 15px;"><strong>Status:</strong> <span class="status-badge status-${status.toLowerCase().replace(' ', '_')}">${status}</span></div>
+      `;
+      document.getElementById('reportDetailsModal').style.display = 'flex';
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportDetailsModal').style.display = 'none';
+    }
+
+    function showDeleteModal(reportId, title) {
+      document.getElementById('deleteMessage').textContent = `Are you sure you want to delete the report "${title}"? This action cannot be undone.`;
+      document.getElementById('confirmDeleteBtn').onclick = () => deleteReport(reportId);
+      document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    function deleteReport(reportId) {
+      // Add your delete logic here
+      showNotification(`Report #${reportId} deleted successfully!`, 'success');
+      closeDeleteModal();
+      // Reload page or remove element
+      location.reload();
+    }
+
+    // Mobile menu functions
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.querySelector('.overlay');
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+
+    function closeSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.querySelector('.overlay');
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUBIG TRACKER - User Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/admin/admin_manage_users.css' %}">
+</head>
+<body>
+
+    <!-- SIDEBAR - FIXED -->
+    <div class="sidebar">
+        <div>
+            <div class="sidebar-header">
+                <img src="{% static 'images/logo.png' %}" class="logo">
+                <h2>Tubig Tracker</h2>
+            </div>
+            <div class="nav">
+                <a href="{% url 'admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a> 
+                <a href="{% url 'view_users' %}" class="active"><i class="fas fa-users"></i> User Management</a>
+                <a href="{% url 'admin_manage_reports' %}"><i class="fas fa-file-alt"></i> Manage Reports</a>
+                 <a href="{% url 'technician_management' %}"><i class="fas fa-cog"></i> Technician Management</a>
+               
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TOP NAVIGATION -->
+        <div class="top-nav">
+            <div class="admin-info">
+            </div>
+            <div class="spacer"></div>
+        </div>
+
+        <!-- PAGE HEADER WITH MANAGE REPORTS BUTTON -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1><i class="fas fa-users"></i> User Management</h1>
+                <p class="subtitle">Manage system users and their roles</p>
+            </div>
+            <div class="header-right">
+                <a href="{% url 'admin_manage_reports' %}" class="btn-manage-reports">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Manage Reports</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- TABLE SECTION -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3><i class="fas fa-users"></i> System Users</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Date Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="role-badge role-{{ user.role }}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-primary" onclick="openModal({{ user.id }}, '{{ user.username }}', '{{ user.email }}', '{{ user.role }}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <a href="{% url 'delete_user' user.id %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-light); padding: 40px;">
+                            No users found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <footer>© 2025 TUBIG Tracker | User Management</footer>
+    </div>
+
+    <!-- EDIT USER MODAL -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Edit User</h2>
+            <form id="editUserForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" id="modalUserId">
+                
+                <div class="form-group">
+                    <label for="modalUsername">Username</label>
+                    <input type="text" class="form-control" name="username" id="modalUsername" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalEmail">Email</label>
+                    <input type="email" class="form-control" name="email" id="modalEmail" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalRole">Role</label>
+                    <select class="form-control" name="role" id="modalRole" required>
+                        <option value="admin">Admin</option>
+                        <option value="resident">Resident</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-submit" style="width: 100%;">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Open modal
+        function openModal(id, username, email, role) {
+            document.getElementById('editModal').style.display = 'block';
+            document.getElementById('modalUserId').value = id;
+            document.getElementById('modalUsername').value = username;
+            document.getElementById('modalEmail').value = email;
+            document.getElementById('modalRole').value = role;
+            document.getElementById('editUserForm').action = '/admin/edit-user/' + id + '/';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+
+</body>
+</html>

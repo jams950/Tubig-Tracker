@@ -1,0 +1,197 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications | Tubig Tracker</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/user/notifications.css' %}">
+</head>
+<body>
+
+  <!-- SIDEBAR - FULL WIDTH -->
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo">
+            <i class="fas fa-tint"></i>
+          </div>
+          <div class="system-name">Tubig Tracker</div>
+        </div>
+        <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9rem;">Water Management System</p>
+      </div>
+      <div class="nav">
+        <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{% url 'add_complaint' %}"><i class="fas fa-exclamation-circle"></i> Report Issue</a>
+        <a href="{% url 'my_reports' %}"><i class="fas fa-clipboard-list"></i> My Reports</a>
+        <a href="{% url 'water_status' %}"><i class="fas fa-map-marker-alt"></i> Water Status</a>
+        <a href="{% url 'my_report_summary' %}"><i class="fas fa-chart-bar"></i> My Report Summary</a>
+        <a href="{% url 'notifications' %}" class="active"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a>
+        <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Settings</a>
+      </div>
+    </div>
+    <div class="logout-section">
+      <div class="user-info-sidebar">
+        <div class="user-avatar-sidebar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details-sidebar">
+          <h3>{{ user.username|default:"User" }}</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+      <div class="logout">
+        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="page-header">
+      <h1><i class="fas fa-bell"></i> Notifications</h1>
+      <p class="subtitle">Stay updated on all water supply alerts and report statuses</p>
+    </div>
+
+    <div class="notifications-container">
+      <div class="notifications-header">
+        <div class="notifications-title">
+          <i class="fas fa-bell"></i>
+          Recent Notifications
+          {% if notifications %}
+            <span class="notification-badge">{{ notifications|length }}</span>
+          {% endif %}
+        </div>
+        <div class="notifications-actions">
+          <button class="action-btn" onclick="markAllAsRead()">
+            <i class="fas fa-check-double"></i> Mark All as Read
+          </button>
+          <button class="action-btn" onclick="clearAllNotifications()">
+            <i class="fas fa-trash"></i> Clear All
+          </button>
+        </div>
+      </div>
+
+      {% if notifications %}
+        <ul class="notification-list">
+          {% for n in notifications %}
+          <li class="notification-item {% if forloop.counter0 < 3 %}unread{% endif %} {% if 'important' in n.message.lower %}important{% endif %} {% if 'resolved' in n.message.lower %}resolved{% endif %}">
+            <div class="notification-header">
+              <div>
+                <span class="notification-type 
+                  {% if 'alert' in n.message.lower %}type-alert
+                  {% elif 'update' in n.message.lower %}type-update
+                  {% elif 'resolved' in n.message.lower %}type-resolved
+                  {% else %}type-info{% endif %}">
+                  <i class="fas 
+                    {% if 'alert' in n.message.lower %}fa-exclamation-triangle
+                    {% elif 'update' in n.message.lower %}fa-sync-alt
+                    {% elif 'resolved' in n.message.lower %}fa-check-circle
+                    {% else %}fa-info-circle{% endif %}"></i>
+                  {% if 'alert' in n.message.lower %}Alert
+                  {% elif 'update' in n.message.lower %}Update
+                  {% elif 'resolved' in n.message.lower %}Resolved
+                  {% else %}Info{% endif %}
+                </span>
+              </div>
+              <div class="notification-date">
+                <i class="far fa-clock"></i>
+                {{ n.date|date:"M d, Y H:i"|default:"Recent" }}
+              </div>
+            </div>
+            <div class="notification-message">
+              {{ n.message }}
+            </div>
+            <div class="notification-actions">
+              <button class="notification-btn btn-mark-read" onclick="markAsRead(this)">
+                <i class="fas fa-check"></i> Mark as Read
+              </button>
+              <button class="notification-btn btn-dismiss" onclick="dismissNotification(this)">
+                <i class="fas fa-times"></i> Dismiss
+              </button>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <i class="far fa-bell-slash"></i>
+          <h3>No Notifications</h3>
+          <p>You're all caught up! There are no new notifications at the moment.</p>
+          <p style="font-size: 0.9rem; color: var(--text-lighter);">
+            Notifications about water supply updates and report status will appear here.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function markAsRead(button) {
+      const notificationItem = button.closest('.notification-item');
+      notificationItem.classList.remove('unread');
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-check"></i> Read';
+    }
+
+    function markAllAsRead() {
+      const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+      unreadNotifications.forEach(item => {
+        item.classList.remove('unread');
+        const markReadBtn = item.querySelector('.btn-mark-read');
+        if (markReadBtn) {
+          markReadBtn.disabled = true;
+          markReadBtn.innerHTML = '<i class="fas fa-check"></i> Read';
+        }
+      });
+      alert('All notifications marked as read!');
+    }
+
+    function dismissNotification(button) {
+      const notificationItem = button.closest('.notification-item');
+      notificationItem.style.opacity = '0';
+      notificationItem.style.transform = 'translateX(-100%)';
+      setTimeout(() => {
+        notificationItem.remove();
+        // Update notification count
+        const remainingNotifications = document.querySelectorAll('.notification-item').length;
+        const badge = document.querySelector('.notification-badge');
+        if (badge) {
+          badge.textContent = remainingNotifications;
+          if (remainingNotifications === 0) {
+            badge.remove();
+          }
+        }
+      }, 300);
+    }
+
+    function clearAllNotifications() {
+      if (confirm('Are you sure you want to clear all notifications?')) {
+        const notificationList = document.querySelector('.notification-list');
+        if (notificationList) {
+          notificationList.style.opacity = '0';
+          notificationList.style.transform = 'translateY(-20px)';
+          setTimeout(() => {
+            notificationList.innerHTML = `
+              <div class="empty-state">
+                <i class="far fa-bell-slash"></i>
+                <h3>No Notifications</h3>
+                <p>All notifications have been cleared.</p>
+              </div>
+            `;
+          }, 300);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
